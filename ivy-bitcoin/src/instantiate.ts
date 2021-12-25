@@ -9,6 +9,8 @@ import {
 } from "bcoin"
 import { BugError } from "./errors"
 
+console.log(typeof Opcode)
+
 import * as crypto from "bcrypto"
 
 const MTX = primitives.MTX

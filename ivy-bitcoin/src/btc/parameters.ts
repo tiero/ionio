@@ -19,6 +19,7 @@ export type ContractParameterType =
   | "Value"
   | "Boolean"
   | "Integer"
+  | "DataSignature"
   | ContractParameterHash
 
 export interface ContractParameter {

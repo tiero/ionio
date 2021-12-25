@@ -1,10 +1,9 @@
 // Predefined contract templates
 
-import { opcode as Opcode } from "bcoin"
 import { compile } from "./compile"
 import { instantiate } from "./instantiate"
 import { spend } from "./spend"
-import { createSignature, toSighash } from "./spend"
+import { createSignature, createDataSignature, toSighash } from "./spend"
 import { Template } from "./template"
 
 export const DEMO_ID_LIST = [
@@ -19,7 +18,8 @@ export const DEMO_ID_LIST = [
   "TransferWithTimeout",
   "EscrowWithDelay",
   "VaultSpend",
-  "HTLC"
+  "HTLC",
+  "HodlVault"
 ]
 
 export const DEMO_CONTRACTS = {
@@ -150,6 +150,19 @@ export const DEMO_CONTRACTS = {
     verify bytes(sha256(hash)) == hash
     unlock val
   }
+}`,
+  HodlVault: `contract HodlVault(
+  ownerPubKey: PublicKey, 
+  oraclePubKey: PublicKey,
+  priceTarget: Bytes,
+  val: Value
+){
+  clause spend(ownerSig: Signature, oracleSig: DataSignature, oracleMessage: Bytes) {
+    verify priceTarget == oracleMessage
+    verify checkSigFromStack(oracleSig, oracleMessage, oraclePubKey)
+    verify checkSig(ownerPubKey, ownerSig)
+    unlock val
+  }
 }`
 }
 
@@ -193,6 +206,8 @@ const PrivateKeys = [
   "L3tiMe49mswHQKqrikqNxJpVZSiBU7bYs1tstuXEYnrvjqRYvWUE",
   "KwFv55qQSs3ipb8Trh6EkYaUTNGNtx5qVx55LMqNvRrj69En5tzY"
 ]
+// 250k
+const PriceTargetBytes = Buffer.from("03d090", "hex");
 
 export const TEST_CONTRACT_ARGS = {
   LockWithPublicKey: [PublicKeys[0], 0],
@@ -210,6 +225,7 @@ export const TEST_CONTRACT_ARGS = {
   HashOperations: [Sha256Bytes, Sha1Bytes, Ripemd160Bytes, 0],
   RevealNumber: [5, 0],
   CheckSize: [0],
+  HodlVault: [PublicKeys[0], PublicKeys[1], PriceTargetBytes, 0]
 }
 
 export const TEST_CONTRACT_CLAUSE_NAMES = {
@@ -228,6 +244,7 @@ export const TEST_CONTRACT_CLAUSE_NAMES = {
   HashOperations: "reveal",
   RevealNumber: "reveal",
   CheckSize: "reveal",
+  HodlVault: "spend"
 }
 
 export const TEST_CONTRACT_TIMES = {
@@ -295,6 +312,15 @@ function generateSignature(id: string, privateKeyIndex: number): string {
   return sig.toString("hex")
 }
 
+function generateDataSignature(id: string, privateKeyIndex: number): string {
+  const privateKey = PrivateKeys[privateKeyIndex]
+  const datasig = createDataSignature(TEST_CONTRACT_ARGS[id][2], privateKey)
+  if (datasig === undefined) {
+    throw new Error("sig unexpectedly undefined")
+  }
+  return datasig.toString("hex")
+}
+
 export const TEST_SPEND_ARGUMENTS = {
   LockWithPublicKey: [generateSignature("LockWithPublicKey", 0)],
   LockWithMultisig: [
@@ -322,7 +348,12 @@ export const TEST_SPEND_ARGUMENTS = {
   HashOperations: [Bytes],
   RevealNumber: [5],
   CheckSize: [Bytes],
-  HTLC: [Bytes, generateSignature("HTLC", 1)]
+  HTLC: [Bytes, generateSignature("HTLC", 1)],
+  HodlVault: [
+    generateSignature("HodlVault", 0),
+    generateDataSignature("HodlVault", 1),
+    PriceTargetBytes,
+  ]
 }
 
 export const ERRORS = {

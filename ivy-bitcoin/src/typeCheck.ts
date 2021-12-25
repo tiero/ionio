@@ -314,9 +314,13 @@ function checkMultiSigArgumentCounts(contract: RawContract) {
 function isSignatureCheck(statement: Statement) {
   return (
     statement.type === "unlock" ||
-    (statement.type === "assertion" &&
-      statement.expression.type === "instructionExpression" &&
-      statement.expression.instruction === "checkSig") // don't even allow multisig yet
+    (
+      statement.type === "assertion" &&
+      statement.expression.type === "instructionExpression"
+    ) && (
+      statement.expression.instruction === "checkSig" || // don't even allow multisig yet
+      statement.expression.instruction === "checkSigFromStack"
+    ) 
   )
 }
 

@@ -3,6 +3,8 @@ import { createTypeSignature, TypeSignature } from "./types"
 import { BugError } from "../errors"
 
 export type ComparisonOperator = "==" | "!="
+export type ConcatenationOperator = "+"
+export type ArithmeticOperator =  "*" | "/" | "-" | "+"
 
 export function isComparisonOperator(str: string): str is ComparisonOperator {
   return ["==", "!="].indexOf(str) !== -1
@@ -18,10 +20,11 @@ export type FunctionName =
   | "checkMultiSig"
   | "bytes"
   | "size"
+  | "checkSigFromStack"
 
 export type Opcode = string // for now
 
-export type BinaryOperator = ComparisonOperator
+export type BinaryOperator = ComparisonOperator | ConcatenationOperator | ArithmeticOperator
 
 export type Instruction = BinaryOperator | FunctionName
 
@@ -58,6 +61,12 @@ export function getOpcodes(instruction: Instruction): Opcode[] {
       return []
     case "size":
       return ["SIZE", "SWAP", "DROP"]
+    case "+":
+      return ["CAT"]
+    case "checkSigFromStack":
+      return ["CHECKSIGFROMSTACK"]
+    default:
+      return []
   }
 }
 
@@ -79,6 +88,18 @@ export function getTypeSignature(instruction: Instruction): TypeSignature {
         ],
         "Boolean"
       )
+    case "checkSigFromStack":
+      return createTypeSignature(
+        [
+          "DataSignature",
+          "Bytes",
+          "PublicKey"
+        ],
+        "Boolean"
+      )
+        
+    case "+":
+      throw new Error("should not call getTypeSignature on +")
     case "==":
     case "!=":
       throw new Error("should not call getTypeSignature on == or !=")
@@ -88,5 +109,7 @@ export function getTypeSignature(instruction: Instruction): TypeSignature {
       throw new Error("should not call getTypeSignature on hash function")
     case "bytes":
       throw new Error("should not call getTypeSignature on bytes function")
+    default:
+      throw new Error("not supported instruction")
   }
 }

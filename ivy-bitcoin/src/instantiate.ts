@@ -118,6 +118,9 @@ export function symbolToOpcode(sym: string, argMap: Map<string, any>) {
       throw new BugError("argument '" + name + "' unexpectedly has no data")
     }
     return argToPushData(arg)
+  } else if (sym.startsWith('0x')) {
+    // it's hex encoded bytestring
+    return Opcode.fromData(Buffer.from(sym, "hex"));
   } else if (/^\d+$/.test(sym)) {
     return Opcode.fromInt(parseInt(sym, 10))
   }

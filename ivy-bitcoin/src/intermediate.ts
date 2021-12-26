@@ -2,7 +2,6 @@
 
 import {
   ASTNode,
-  Block,
   Clause,
   Contract,
   InstructionExpression,
@@ -75,7 +74,7 @@ export interface Verify {
 
 export interface Push {
   type: "push"
-  literalType: "Integer" | "Boolean"
+  literalType: "Integer" | "Boolean" | "Bytes"
   value: string
 }
 

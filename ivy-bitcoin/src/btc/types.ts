@@ -10,6 +10,7 @@ export type Primitive =
   | "Time"
   | "Duration"
   | "Value"
+  | "Asset"
   | "Boolean"
   | "Integer"
   | "DataSignature"
@@ -60,6 +61,7 @@ export function isPrimitive(str: Type | string): str is Primitive {
     case "Boolean":
     case "Integer":
     case "Value":
+    case "Asset":
     case "DataSignature":
       return true
     default:

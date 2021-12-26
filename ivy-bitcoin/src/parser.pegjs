@@ -28,13 +28,16 @@ Clause
   = "clause" _ name:Identifier "(" parameters:Parameters ")" __ "{" __ statements:Statement+ "}" __ { return { type: "clause", location: location(), name: name, parameters: parameters, statements: statements} }
 
 Statement
-  = Assertion / Unlock
+  = Assertion / Unlock / Of
 
 Assertion
   = "verify" _ exp:Expression1 __ { return { type: "assertion", location: location(), expression: exp} }
 
 Unlock
   = "unlock" _ value:VariableExpression __ { return { type: "unlock", location: location(), value: value } }
+
+Of
+  = "of" _ asset:VariableExpression __ { return { type: "of", location: location(), asset: asset } }
 
 // need to handle precedence
 

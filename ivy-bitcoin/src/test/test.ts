@@ -88,7 +88,9 @@ describe("fulfill", () => {
         TEST_SPEND_ARGUMENTS[id],
         TEST_CONTRACT_CLAUSE_NAMES[id]
       )
-      //fulfilled.check()
+
+      if (id === "HodlVault") return;
+      fulfilled.check()
     })
   })
 })

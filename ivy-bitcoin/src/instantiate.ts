@@ -134,15 +134,18 @@ export function instantiate(
     throw new Error("expected " + numArgs + " arguments, got " + args.length)
   }
   const dataArgs = args.filter(
-    (_, i) => template.params[i].valueType !== "Value"
+    (_, i) => template.params[i].valueType !== "Value" || template.params[i].valueType !== "Asset"
   )
   const valueArgs = args.filter(
     (_, i) => template.params[i].valueType === "Value"
   ) as number[]
+  const assetArgs = args.filter(
+    (_, i) => template.params[i].valueType === "Asset"
+  ) as number[]
   const instructions = template.instructions
   const argMap = new Map<string, any>()
   template.params.map((param, i) => {
-    if (param.valueType !== "Value") {
+    if (param.valueType !== "Value" && param.valueType !== "Asset") {
       argMap.set(param.name, args[i])
     }
   })

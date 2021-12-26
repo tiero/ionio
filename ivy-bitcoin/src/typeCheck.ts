@@ -272,6 +272,16 @@ export function typeCheckStatement(statement: Statement) {
       }
       return
     }
+    case "of": {
+      const expressionType = typeCheckExpression(statement.asset)
+      if (expressionType !== "Asset") {
+        throw new IvyTypeError(
+          "of statement expects a Asset, got " +
+            typeToString(expressionType)
+        )
+      }
+      return
+    }
   }
 }
 
@@ -313,7 +323,7 @@ function checkMultiSigArgumentCounts(contract: RawContract) {
 
 function isSignatureCheck(statement: Statement) {
   return (
-    statement.type === "unlock" ||
+    statement.type === "unlock" || statement.type === "of" ||
     (
       statement.type === "assertion" &&
       statement.expression.type === "instructionExpression"
@@ -375,6 +385,18 @@ export function typeCheckContract(rawContract: RawContract): RawContract {
       "A contract can only have one parameter of type Value."
     )
   }
+  // elements: check asset
+  const numAssets = rawContract.parameters.filter(
+    param => param.itemType === "Asset"
+  ).length
+  if (numAssets === 0) {
+    throw new IvyTypeError("A contract must have a parameter of type Asset.")
+  }
+  if (numAssets > 1) {
+    throw new IvyTypeError(
+      "A contract can only have one parameter of type Asset."
+    )
+  }
   for (const parameter of rawContract.parameters) {
     if (parameter.itemType === undefined) {
       throw new BugError("parameter type unexpectedly undefined")
@@ -387,6 +409,9 @@ export function typeCheckContract(rawContract: RawContract): RawContract {
     for (const parameter of clause.parameters) {
       if (parameter.itemType === "Value") {
         throw new IvyTypeError("Values cannot be used as clause parameters")
+      }
+      if (parameter.itemType === "Asset") {
+        throw new IvyTypeError("Assets cannot be used as clause parameters")
       }
     }
   }

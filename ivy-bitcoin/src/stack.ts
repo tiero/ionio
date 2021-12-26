@@ -51,6 +51,7 @@ export function compileStackOps(ops: Operation[]): FinalOperation[] {
 
   const contractParameterNames = contract.parameters
     .filter(param => param.itemType !== "Value")
+    .filter(param => param.itemType !== "Asset")
     .filter(param => contract.referenceCounts.get(param.name) !== 1)
     .map(param => param.name)
     .reverse()
@@ -79,6 +80,7 @@ export function compileStackOps(ops: Operation[]): FinalOperation[] {
     .slice()
     .reverse()
     .filter(param => param.itemType !== "Value")
+    .filter(param => param.itemType !== "Asset")
     .filter(param => contract.referenceCounts.get(param.name) !== 1)
     .map(param => emit({ type: "pushParameter", name: param.name }))
 

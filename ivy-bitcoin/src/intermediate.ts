@@ -224,6 +224,7 @@ function compileToIntermediate(
       emit({ type: "push", literalType: node.literalType, value: node.value })
       return node
     }
+    case "of": 
     case "unlock": {
       return node
     }

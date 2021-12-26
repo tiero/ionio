@@ -73,7 +73,13 @@ export interface Unlock {
   value: Variable
 }
 
-export type Statement = Assertion | Unlock
+export interface Of {
+  type: "of"
+  location: Location
+  asset: Variable
+}
+
+export type Statement = Assertion | Unlock | Of
 
 export function statementToString(statement: Statement) {
   switch (statement.type) {
@@ -81,6 +87,8 @@ export function statementToString(statement: Statement) {
       return "verify " + expressionToString(statement.expression)
     case "unlock":
       return "unlock " + statement.value
+    case "of":
+      return "of " + statement.asset
   }
 }
 
@@ -319,6 +327,12 @@ export function mapOverAST(func: (Node) => ASTNode, node: ASTNode): ASTNode {
       return func({
         ...node,
         value: func(node.value)
+      })
+    }
+    case "of": {
+      return func({
+        ...node,
+        asset: func(node.asset)
       })
     }
   }

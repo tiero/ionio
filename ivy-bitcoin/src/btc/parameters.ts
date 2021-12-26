@@ -17,6 +17,7 @@ export type ContractParameterType =
   | "Duration"
   | "Signature"
   | "Value"
+  | "Asset"
   | "Boolean"
   | "Integer"
   | "DataSignature"

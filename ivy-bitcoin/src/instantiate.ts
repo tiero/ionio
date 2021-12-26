@@ -126,10 +126,16 @@ export function symbolToOpcode(sym: string, argMap: Map<string, any>) {
 
 export function instantiate(
   template: Template,
-  args: Array<Buffer | number>,
+  args: Array<Buffer | number | string>,
   seed = crypto.random.randomBytes(32)
 ): Contract {
-  const numArgs = template.params.length
+  let numArgs
+  try {
+    numArgs = template.params.length
+  } catch(e) {
+    console.log(template)
+    throw e
+  }
   if (numArgs !== args.length) {
     throw new Error("expected " + numArgs + " arguments, got " + args.length)
   }

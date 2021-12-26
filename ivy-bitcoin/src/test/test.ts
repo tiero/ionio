@@ -25,9 +25,6 @@ describe("compile", () => {
       const contractSource = TEST_CASES[name]
       const compiled = compile(contractSource)
       expect((compiled as CompilerError).message).to.equal(undefined) // so it prints the error
-      if (name === "HodlVault") {
-        console.log(compiled)
-      }
     })
   })
   Object.keys(ERRORS).forEach(errorName => {

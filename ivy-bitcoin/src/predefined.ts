@@ -183,6 +183,7 @@ export const DEMO_CONTRACTS = {
     verify priceTarget == oracleMessage
     verify checkSigFromStack(oracleSig, oracleMessage, oraclePubKey)
     verify checkSig(ownerPubKey, ownerSig)
+    verify tx.version == bytes(2)
     unlock val
     of asset
   }

@@ -5,16 +5,12 @@ import {
   Block,
   Clause,
   Contract,
-  Expression,
   InstructionExpression,
-  mapOverAST,
-  Parameter,
   Variable
 } from "./ast"
 
 import { BugError } from "./errors"
 
-import { Instruction } from "./btc/instructions"
 
 export type Operation =
   | Get

@@ -14,6 +14,9 @@ let isHashTypeName = types.isHashTypeName
 let typeNameToHashFunction = types.typeNameToHashFunction
 let isDeclarableUnaryOperator = instructions.isDeclarableUnaryOperator
 let isComparisonOperator = instructions.isComparisonOperator
+let isNullaryOperator = instructions.isNullaryOperator
+
+
 
 function trimText(text) {
   return text.trim().replace("\n", "").replace(/[\s]+/g, " ")
@@ -47,6 +50,7 @@ Expression1 "expression"
 
 Expression2
   = CallExpression
+  / NullaryExpression
   / Literal
   / VariableExpression
   / "(" exp:Expression1 ")" { return exp }
@@ -64,6 +68,12 @@ ComparisonExpression // not associative
 
 ComparisonOperator
   = (operator:Operator & { return isComparisonOperator(operator) }) { return text() }
+
+NullaryExpression
+  = name:NullaryOperator { return createInstructionExpression("nullaryExpression", location(), name, []) }
+
+NullaryOperator
+  = (operator:Global & { return isNullaryOperator(operator) }) { return text() }
 
 CallExpression
   = name:FunctionIdentifier "(" args:Expressions ")" { return createInstructionExpression("callExpression", location(), name, args) }
@@ -133,6 +143,9 @@ _ "whitespace"
 Comment "comment"
   = "//" [^\n\r]* /
     "/*" (!"*/" .)* "*/"
+
+Global 
+  = "tx.version" / "tx.locktime" / "tx.weight" / "tx.inputs.length" / "tx.outputs.length" { return text() }
 
 Operator
   = [^ \t\n\rA-Za-z1-9\[\]\(\)]+ { return text() }

@@ -7,7 +7,7 @@ export interface Location {
   end: { column: number; line: number }
 }
 
-export type InstructionExpressionType = "binaryExpression" | "callExpression"
+export type InstructionExpressionType = "binaryExpression" | "callExpression" | "nullaryExpression"
 
 export interface Parameter {
   type: "parameter"
@@ -224,6 +224,10 @@ function instructionExpressionToString(expression: InstructionExpression) {
         "(" +
         expression.args.map(exp => expressionToString(exp)).join(", ") +
         ")"
+      )
+    case "nullaryExpression":
+      return (
+        expression.instruction
       )
   }
 }

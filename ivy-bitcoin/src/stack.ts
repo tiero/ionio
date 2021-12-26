@@ -1,10 +1,6 @@
-import { Variable } from "./ast"
-
 import { FinalOperation, Operation, operationToString } from "./intermediate"
-
 import { BugError } from "./errors"
 
-import { getTypeSignature } from "./btc/instructions"
 
 type Stack = string[]
 

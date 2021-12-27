@@ -2,14 +2,14 @@ import { optimize } from "./btc/optimize"
 import { toContractParameter } from "./btc/parameters"
 import toOpcodes from "./btc/toOpcodes"
 import { desugarContract } from "./desugar"
-import { compileContractToIntermediate, FinalOperation, InstructionOp } from "./intermediate"
+import { compileContractToIntermediate } from "./intermediate"
 import { referenceCheck } from "./references"
 import { compileStackOps } from "./stack"
 import { CompilerError, Template, toTemplateClause } from "./template"
 import { typeCheckContract } from "./typeCheck"
 
 import { RawContract } from "./ast"
-import { numberToHex } from "./cast"
+import { cast } from "./cast"
 
 const parser = require("../lib/parser");
 
@@ -23,26 +23,10 @@ export function compile(source: string): Template | CompilerError {
       compileContractToIntermediate(desugarContract(ast))
     )
     
-    // TODO: move in a dedicate casting file
-    // bytes: cast int to hex string
-    operations.forEach((finalOp: FinalOperation, index: number) => {
-      const previousIndex = index - 1;
-      // checks for casting of bytes(Integer) at main level
-      if (finalOp.type === "instructionOp" && finalOp.expression.instruction === "bytes") {
-        const previousOp = operations[previousIndex];
-        if (previousOp.type === "push" && previousOp.literalType === "Integer") {
-          operations[previousIndex] = {
-            ...previousOp,
-            literalType: "Bytes",
-            value: numberToHex(Number(previousOp.value))
-          };
-        }
-      }
-    });
+    // cast the result of `bytes(Integer)` call expression 
+    const castedOperations = cast(operations);
 
-
-
-    const instructions = optimize(toOpcodes(operations))
+    const instructions = optimize(toOpcodes(castedOperations))
     const params = ast.parameters.map(toContractParameter)
     return {
       type: "template",

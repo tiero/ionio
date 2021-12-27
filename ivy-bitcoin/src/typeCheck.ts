@@ -1,17 +1,11 @@
 import {
-  createTypeSignature,
   getTypeClass,
   Hash,
   inputTypesToString,
   isHash,
   isHashFunctionName,
-  isList,
-  isPrimitive,
-  isTypeClass,
   List,
-  Primitive,
   Type,
-  TypeClass,
   TypeSignature,
   typeToString
 } from "./btc/types"
@@ -20,15 +14,11 @@ import {
   ASTNode,
   Clause,
   Expression,
-  Import,
   ListLiteral,
   mapOverAST,
-  Parameter,
   RawContract,
-  scopedName,
   Statement,
   ValueLiteral,
-  Variable
 } from "./ast"
 
 import { getTypeSignature } from "./btc/instructions"

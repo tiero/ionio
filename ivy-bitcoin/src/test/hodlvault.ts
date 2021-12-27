@@ -9,7 +9,7 @@ describe("compile", () => {
       const id = "HodlVault"
       const contractSource = TEST_CASES[id]
       const compiled = compile(contractSource)
-      console.log(compiled)
-      const instantiated = instantiate(compiled as Template, TEST_CONTRACT_ARGS[id])
+      const instantiated = instantiate(compiled as Template, TEST_CONTRACT_ARGS[id]);
+      console.log(instantiated.template.instructions);
     })
 })

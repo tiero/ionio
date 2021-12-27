@@ -1,13 +1,13 @@
-# Ivy Syntax
+# Ionio Syntax
 
-Ivy gives you essentially all the flexibility of Bitcoin Script, but gives you some additional affordances and conveniences:
+Ionio gives you essentially all the flexibility of Bitcoin Script, but gives you some additional affordances and conveniences:
 
   * named variables
   * named "clauses"
   * static (and domain-specific) [types](/language/Types.html)
   * familiar syntax for [functions and operators](/language/Functions.html)
 
-This is an example of an Ivy contract template:
+This is an example of an Ionio contract template:
 
 ```
 contract LockWithPublicKey(publicKey: PublicKey, val: Value) {

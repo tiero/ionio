@@ -1,9 +1,9 @@
 # JavaScript SDK
 
-Ivy is also available as a (very unstable and early-stage) [JavaScript SDK](https://www.npmjs.com/package/ivy-bitcoin).
+Ionio is also available as a (very unstable and early-stage) [JavaScript SDK](https://www.npmjs.com/package/ionio-bitcoin).
 
 ```
-npm install ivy-bitcoin
+npm install ionio-bitcoin
 ```
 
 This library allows you to write and compile contract templates, instantiate them with arguments (to create Bitcoin addresses), create dummy contracts (with fake value), and unlock them with arguments. 
@@ -19,7 +19,7 @@ import {
   toSighash,
   createSignature,
   crypto
-} from "ivy-bitcoin"
+} from "ionio-bitcoin"
 
 const source = `contract LockWithPublicKey(publicKey: PublicKey, val: Value) {
   clause spend(sig: Signature) {
@@ -65,4 +65,4 @@ const fulfilledTransaction = fulfill(instantiated, spendTransaction, [sig], "spe
 fulfilledTransaction.check()
 ```
 
-For more examples of how to use the library, see the [tests](https://github.com/ivy-lang/ivy-bitcoin/blob/main/ivy-bitcoin/src/test/test.ts).
+For more examples of how to use the library, see the [tests](https://github.com/ionio-lang/ionio-bitcoin/blob/main/ionio-bitcoin/src/test/test.ts).

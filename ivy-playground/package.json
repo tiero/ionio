@@ -1,10 +1,10 @@
 {
-  "name": "ivy-playground",
-  "description": "Sandbox for testing Ivy for Bitcoin.",
+  "name": "ionio-playground",
+  "description": "Sandbox for testing Ionio for Bitcoin.",
   "version": "0.0.1",
   "bugs": {
-    "url": "https://github.com/ivy-lang/ivy-bitcoin/issues",
-    "email": "ivy@chain.com"
+    "url": "https://github.com/ionio-lang/ionio-bitcoin/issues",
+    "email": "ionio@chain.com"
   },
   "dependencies": {
     "@types/node": "^7.10.6",
@@ -17,7 +17,7 @@
     "brace": "^0.10.0",
     "css-loader": "^0.28.1",
     "file-loader": "4.0.0",
-    "ivy-bitcoin": "../ivy-bitcoin",
+    "ionio-bitcoin": "../ionio-bitcoin",
     "json-loader": "^0.5.4",
     "moment": "^2.24.0",
     "pegjs": "^0.10.0",
@@ -52,10 +52,10 @@
   },
   "license": "MIT",
   "main": "src/entry.js",
-  "repository": "ivy-lang/ivy-bitcoin",
+  "repository": "ionio-lang/ionio-bitcoin",
   "scripts": {
     "build": "webpack --config webpack.production.config.js",
-    "deploy": "npm run build && aws s3 cp public s3://ivylang.org/static --recursive",
+    "deploy": "npm run build && aws s3 cp public s3://ionio-lang.org/static --recursive",
     "start": "webpack-dev-server --content-base public --inline --hot",
     "test": ""
   }

@@ -1,7 +1,7 @@
 // external imports
 import { createSelector } from "reselect"
 
-// ivy imports
+// ionio imports
 import { AppState } from "../app/types"
 import { Template } from "../templates/types"
 
@@ -20,7 +20,7 @@ import {
   isValidInput
 } from "../inputs/data"
 
-import { createSignature, fulfill, spend, toSighash } from "ivy-bitcoin"
+import { createSignature, fulfill, spend, toSighash } from "ionio-bitcoin"
 
 // internal imports
 import { Contract, ContractMap, ContractsState } from "./types"

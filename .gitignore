@@ -48,7 +48,7 @@ jspm_packages
 .yarn-integrity
 
 # Built app
-ivy-playground/public/*.bundle.js
+ionio-playground/public/*.bundle.js
 
 # Built book
 docs/_book

@@ -17,7 +17,7 @@
     "brace": "^0.10.0",
     "css-loader": "^0.28.1",
     "file-loader": "4.0.0",
-    "ionio-bitcoin": "../ionio-bitcoin",
+    "ionio-bitcoin": "../ivy-bitcoin",
     "json-loader": "^0.5.4",
     "moment": "^2.24.0",
     "pegjs": "^0.10.0",

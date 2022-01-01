@@ -10,7 +10,7 @@ import { applyMiddleware, compose, createStore } from "redux"
 import persistState from "redux-localstorage"
 import thunk from "redux-thunk"
 
-// ivy imports
+// ionio imports
 import app from "./app"
 import templates from "./templates"
 
@@ -41,7 +41,7 @@ const selected = templates.selectors.getSelectedTemplate(store.getState())
 store.dispatch(templates.actions.loadTemplate(selected) as any)
 render(
   <Provider store={store}>
-    <DocumentTitle title="Ivy Playground for Bitcoin">
+    <DocumentTitle title="Ionio Playground for Bitcoin">
       <ConnectedRouter history={history}>
         <app.components.Root>
           <Switch>

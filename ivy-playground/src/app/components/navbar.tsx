@@ -16,7 +16,7 @@ const mapStateToProps = state => {
   }
 
   const pathname = location.pathname.split("/")
-  if (pathname[1] === "ivy") {
+  if (pathname[1] === "ionio") {
     pathname.shift()
   }
   return { path: pathname[1] }
@@ -39,10 +39,10 @@ const Navbar = (props: { path: string }) => {
         />
         <ul className="nav navbar-nav navbar-right">
           <li>
-            <a href="https://github.com/ivy-lang/ivy-bitcoin">GitHub</a>
+            <a href="https://github.com/ionio-lang/ionio-bitcoin">GitHub</a>
           </li>
           <li>
-            <a href="https://docs.ivylang.org/bitcoin/">Docs</a>
+            <a href="https://docs.ionio-lang.org/bitcoin/">Docs</a>
           </li>
           <li>
             <Link to="/create">Create Contract</Link>

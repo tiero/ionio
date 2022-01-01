@@ -1,4 +1,4 @@
-import { instantiate } from "ivy-bitcoin"
+import { instantiate } from "ionio-bitcoin"
 import { addParameterInput } from "../inputs/data"
 import {
   ContractParameterType,
@@ -12,7 +12,7 @@ import { Template } from "../templates/types"
 // external imports
 import { ContractsState } from "./types"
 
-// ivy imports
+// ionio imports
 import { AppState } from "../app/types"
 import { addDefaultInput } from "../inputs/data"
 import { Contract } from "./types"
@@ -31,7 +31,7 @@ import {
   Contract as IvyContract,
   TemplateClause,
   Transaction
-} from "ivy-bitcoin"
+} from "ionio-bitcoin"
 
 export const INITIAL_STATE: ContractsState = {
   contractMap: {},

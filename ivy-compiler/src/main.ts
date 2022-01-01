@@ -2,14 +2,14 @@
 
 import commander = require("commander");
 import fs = require('fs');
-import ivy = require('ivy-bitcoin');
+import ionio = require('ionio-bitcoin');
 
 let fileToCompile = null;
 
 const cli =
     commander
         .version("1.0.0")
-        .description("Ivy-bitcoin language compiler")
+        .description("Ionio-bitcoin language compiler")
         .usage('[options] <file>')
         .arguments('<file>')
         .action(function(file) {
@@ -31,7 +31,7 @@ if (fileToCompile == null) {
     process.exit(3);
 } else {
     let fileContents = fs.readFileSync(fileToCompile,'utf8');
-    let compilationResult = ivy.compile(fileContents);
+    let compilationResult = ionio.compile(fileContents);
     if (compilationResult.type == "compilerError") {
         console.log(compilationResult.message);
         process.exit(4);

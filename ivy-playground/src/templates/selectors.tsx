@@ -1,9 +1,9 @@
 // external imports
-import { instantiate } from "ivy-bitcoin"
+import { instantiate } from "ionio-bitcoin"
 import { createSelector } from "reselect"
 import { getContract } from "../contracts/selectors"
 
-// ivy imports
+// ionio imports
 import { AppState } from "../app/types"
 import { getData, isValidInput } from "../inputs/data"
 import { getChild, Input, InputMap } from "../inputs/types"
@@ -162,7 +162,7 @@ export const getSaveability = createSelector(
     if (error !== undefined) {
       return {
         saveable: false,
-        error: "Contract template is not valid Ivy."
+        error: "Contract template is not valid Ionio."
       }
     }
     const name = compiled.name
@@ -195,7 +195,7 @@ export const getCreateability = createSelector(
     if (error !== undefined) {
       return {
         createable: false,
-        error: "Contract template is not valid Ivy."
+        error: "Contract template is not valid Ionio."
       }
     }
     if (!inputsAreValid) {

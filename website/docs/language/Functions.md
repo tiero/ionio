@@ -1,6 +1,6 @@
 # Functions
 
-The following functions and operators are available when compiling Ivy to Bitcoin Script:
+The following functions and operators are available when compiling Ionio to Bitcoin Script:
 
 * **checkSig(publicKey: PublicKey, sig: Signature) -> Boolean**: check that the signature **sig **is a valid signature on the spending transaction by the private key corresponding to **publicKey**. 
 

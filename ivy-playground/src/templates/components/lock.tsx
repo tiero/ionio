@@ -3,7 +3,7 @@ import React from "react"
 import { connect } from "react-redux"
 import ReactTooltip from "react-tooltip"
 
-// ivy imports
+// ionio imports
 import Section from "../../app/components/section"
 import { Display } from "../../contracts/components/display"
 import { ContractParameters } from "../../contracts/components/parameters"

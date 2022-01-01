@@ -5,7 +5,7 @@ import DocumentTitle from "react-document-title"
 import { connect } from "react-redux"
 import {} from "../../templates/components/helpicon"
 
-// ivy imports
+// ionio imports
 import Section from "../../app/components/section"
 import {
   getContractMap,

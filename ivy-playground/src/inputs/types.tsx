@@ -4,7 +4,7 @@ import {
   ContractParameterType,
   HashFunction,
   isHash
-} from "ivy-bitcoin"
+} from "ionio-bitcoin"
 
 export {
   ContractParameterType,

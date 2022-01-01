@@ -1,5 +1,6 @@
 name: Github Pages for Website
-on:
+on: 
+  workflow_dispatch:
   push:
     paths:
       - './website/**'

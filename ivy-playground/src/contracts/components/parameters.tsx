@@ -1,4 +1,4 @@
-import { typeToString } from "ivy-bitcoin"
+import { typeToString } from "ionio-bitcoin"
 import * as momentImport from "moment"
 // external imports
 import React from "react"
@@ -22,7 +22,7 @@ import {
   SequenceNumberControl
 } from "./transactionDetailInputs"
 
-// ivy imports
+// ionio imports
 import { getState as getContractsState } from "../../contracts/selectors"
 import {
   getShowUnlockInputErrors,

@@ -920,7 +920,7 @@ ace.define(
 )
 
 ace.define(
-  "ace/mode/ivy",
+  "ace/mode/ionio",
   [
     "require",
     "exports",

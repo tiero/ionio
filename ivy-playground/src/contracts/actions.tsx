@@ -1,7 +1,7 @@
 // external imports
 import { push } from "react-router-redux"
 
-// ivy imports
+// ionio imports
 import {
   setSource,
   updateError as updateCreateError
@@ -13,7 +13,7 @@ import {
   getSource
 } from "../templates/selectors"
 
-import { compile } from "ivy-bitcoin"
+import { compile } from "ionio-bitcoin"
 
 // internal imports
 import {

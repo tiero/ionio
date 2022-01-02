@@ -22,7 +22,7 @@ const Ace = ({ source, handleChange }) => {
   return (
     <div className="panel-body">
       <AceEditor
-        mode="ivy"
+        mode="ionio"
         theme="monokai"
         onChange={handleChange}
         name="aceEditor"

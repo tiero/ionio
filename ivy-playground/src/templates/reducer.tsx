@@ -1,11 +1,11 @@
-// ivy imports
+// ionio imports
 import { CREATE_CONTRACT, UPDATE_INPUT } from "../contracts/actions"
 import { generateInputMap } from "../contracts/selectors"
 import { InputMap } from "../inputs/types"
 import { Template, TemplateState } from "./types"
 
 // internal imports
-import { DEMO_CONTRACTS, DEMO_ID_LIST } from "ivy-bitcoin"
+import { DEMO_CONTRACTS, DEMO_ID_LIST } from "ionio-bitcoin"
 import {
   SAVE_TEMPLATE,
   SET_SOURCE,

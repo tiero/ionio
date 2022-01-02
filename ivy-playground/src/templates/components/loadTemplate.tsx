@@ -2,7 +2,7 @@
 import React from "react"
 import { connect } from "react-redux"
 
-// ivy imports
+// ionio imports
 import { AppState } from "../../app/types"
 
 // internal imports

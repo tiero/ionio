@@ -2,7 +2,7 @@
 import { routerReducer } from "react-router-redux"
 import { combineReducers } from "redux"
 
-// ivy imports
+// ionio imports
 import contracts from "../contracts"
 import templates from "../templates"
 

@@ -5,7 +5,7 @@ import DocumentTitle from "react-document-title"
 import { connect } from "react-redux"
 import { Link } from "react-router-dom"
 
-// ivy imports
+// ionio imports
 import Section from "../../app/components/section"
 
 // internal imports

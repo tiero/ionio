@@ -15,6 +15,7 @@ let typeNameToHashFunction = types.typeNameToHashFunction
 let isDeclarableUnaryOperator = instructions.isDeclarableUnaryOperator
 let isComparisonOperator = instructions.isComparisonOperator
 let isNullaryOperator = instructions.isNullaryOperator
+let isUnaryOperator = instructions.isUnaryOperator
 
 
 
@@ -51,6 +52,7 @@ Expression1 "expression"
 Expression2
   = CallExpression
   / NullaryExpression
+  / UnaryExpression
   / Literal
   / VariableExpression
   / "(" exp:Expression1 ")" { return exp }
@@ -74,6 +76,9 @@ NullaryExpression
 
 NullaryOperator
   = (operator:Global & { return isNullaryOperator(operator) }) { return text() }
+
+UnaryExpression
+  = obj:TxPropertyIdentifier "[" args:Expressions "]." prop:Identifier { return createInstructionExpression("unaryExpression", location(), obj + "[i]." + prop, args)}
 
 CallExpression
   = name:FunctionIdentifier "(" args:Expressions ")" { return createInstructionExpression("callExpression", location(), name, args) }
@@ -130,6 +135,12 @@ FunctionIdentifier "functionIdentifier"
   = Identifier "." Identifier { return text() }
   / Identifier
 
+IntegerIdentifier "integerIdentifier"
+  = [-]?[0-9]+ { return text() }
+
+TxPropertyIdentifier 
+  = "tx.inputs" / "tx.outputs" { return text() }
+
 Nothing "nothing"
   = __ { return [] }
 
@@ -144,8 +155,8 @@ Comment "comment"
   = "//" [^\n\r]* /
     "/*" (!"*/" .)* "*/"
 
-Global 
-  = "tx.version" / "tx.locktime" / "tx.weight" / "tx.inputs.length" / "tx.outputs.length" { return text() }
-
 Operator
   = [^ \t\n\rA-Za-z1-9\[\]\(\)]+ { return text() }
+
+Global 
+  = "tx.version" / "tx.locktime" / "tx.weight" / "tx.inputs.length" / "tx.outputs.length" { return text() }

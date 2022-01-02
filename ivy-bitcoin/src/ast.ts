@@ -7,7 +7,7 @@ export interface Location {
   end: { column: number; line: number }
 }
 
-export type InstructionExpressionType = "binaryExpression" | "callExpression" | "nullaryExpression"
+export type InstructionExpressionType = "binaryExpression" | "callExpression" | "nullaryExpression" | "unaryExpression"
 
 export interface Parameter {
   type: "parameter"
@@ -228,6 +228,15 @@ function instructionExpressionToString(expression: InstructionExpression) {
     case "nullaryExpression":
       return (
         expression.instruction
+      )
+    case "unaryExpression":
+      const [left, right] = expression.instruction.split["[i]"];
+      return (
+        left + 
+        "[" +
+        expressionToString(expression.args[0]) +
+        "]" +
+        right
       )
   }
 }

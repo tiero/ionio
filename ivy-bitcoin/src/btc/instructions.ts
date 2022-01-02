@@ -4,11 +4,26 @@ export type ComparisonOperator = "==" | "!="
 export type ConcatenationOperator = "+"
 export type ArithmeticOperator = "*" | "/" | "-" | "+"
 export type NullaryOperator =
+  | "this.index"
+  | "this.script"
   | "tx.version"
   | "tx.locktime"
   | "tx.weight"
   | "tx.inputs.length"
   | "tx.outputs.length"
+export type UnaryOperator =
+  | "tx.inputs[i].value"
+  | "tx.inputs[i].asset"
+  | "tx.inputs[i].outpoint"
+  | "tx.inputs[i].sequence"
+  | "tx.inputs[i].script"
+  | "tx.inputs[i].issuance"
+  | "tx.outputs[i].value"
+  | "tx.outputs[i].asset"
+  | "tx.outputs[i].nonce"
+  | "tx.outputs[i].value"
+  | "tx.outputs[i].script"
+
 
 export function isComparisonOperator(str: string): str is ComparisonOperator {
   return ["==", "!="].indexOf(str) !== -1
@@ -16,11 +31,32 @@ export function isComparisonOperator(str: string): str is ComparisonOperator {
 
 export function isNullaryOperator(str: string): str is NullaryOperator {
   switch (str) {
+    case "this.index":
+    case "this.script":
     case "tx.version":
     case "tx.locktime":
     case "tx.weight":
     case "tx.inputs.length":
     case "tx.outputs.length":
+      return true
+    default:
+      return false
+  }
+}
+
+export function isUnaryOperator(str: string): str is UnaryOperator {
+  switch (str) {
+    case "tx.inputs[i].value":
+    case "tx.inputs[i].asset":
+    case "tx.inputs[i].outpoint":
+    case "tx.inputs[i].sequence":
+    case "tx.inputs[i].script":
+    case "tx.inputs[i].issuance":
+    case "tx.outputs[i].value":
+    case "tx.outputs[i].asset":
+    case "tx.outputs[i].nonce":
+    case "tx.outputs[i].value":
+    case "tx.outputs[i].script":
       return true
     default:
       return false
@@ -43,7 +79,7 @@ export type Opcode = string // for now
 
 export type BinaryOperator = ComparisonOperator | ConcatenationOperator | ArithmeticOperator
 
-export type Instruction = BinaryOperator | FunctionName | NullaryOperator
+export type Instruction = BinaryOperator | FunctionName | NullaryOperator | UnaryOperator
 
 // slightly hackish runtime type guard
 
@@ -78,8 +114,6 @@ export function getOpcodes(instruction: Instruction): Opcode[] {
       return []
     case "size":
       return ["SIZE", "SWAP", "DROP"]
-    case "+":
-      return ["CAT"]
     case "checkSigFromStack":
       return ["CHECKSIGFROMSTACK"] // will get special treatment
     case "tx.version":
@@ -92,6 +126,8 @@ export function getOpcodes(instruction: Instruction): Opcode[] {
       return ["INSPECTNUMINPUTS"]
     case "tx.outputs.length":
       return ["INSPECTNUMOUTPUTS"]
+    case "tx.outputs[i].asset":
+      return ["INSPECTOUTPUTASSET"]
     default:
       return []
   }
@@ -128,6 +164,8 @@ export function getTypeSignature(instruction: Instruction): TypeSignature {
     // introspection
     case "tx.version":
       return createTypeSignature([], "Bytes")
+    case "tx.outputs[i].asset":
+      return createTypeSignature(["Integer"], "Bytes")
     case "tx.locktime":
     case "tx.weight":
     case "tx.inputs.length":

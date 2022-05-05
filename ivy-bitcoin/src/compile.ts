@@ -9,7 +9,6 @@ import { CompilerError, Template, toTemplateClause } from "./template"
 import { typeCheckContract } from "./typeCheck"
 
 import { RawContract } from "./ast"
-import { cast } from "./cast"
 
 const parser = require("../lib/parser");
 
@@ -22,11 +21,8 @@ export function compile(source: string): Template | CompilerError {
     const operations = compileStackOps(
       compileContractToIntermediate(desugarContract(ast))
     )
-    
-    // cast the result of `bytes(Integer)` call expression 
-    const castedOperations = cast(operations);
 
-    const instructions = optimize(toOpcodes(castedOperations))
+    const instructions = optimize(toOpcodes(operations))
     const params = ast.parameters.map(toContractParameter)
     return {
       type: "template",

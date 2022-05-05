@@ -180,11 +180,11 @@ export const DEMO_CONTRACTS = {
   asset: Asset
 ){
   clause spend(ownerSig: Signature, oracleSig: DataSignature, oracleMessage: Bytes) {
-    verify tx.outputs[0].asset == bytes(2)
+    verify tx.outputs[0].asset == bytes(02000000)
     verify priceTarget == oracleMessage
     verify checkSigFromStack(oracleSig, oracleMessage, oraclePubKey)
     verify checkSig(ownerPubKey, ownerSig)
-    verify tx.version == bytes(2)
+    verify tx.version == bytes(02000000)
     unlock val
     of asset
   }

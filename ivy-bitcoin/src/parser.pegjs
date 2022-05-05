@@ -75,10 +75,10 @@ NullaryExpression
   = name:NullaryOperator { return createInstructionExpression("nullaryExpression", location(), name, []) }
 
 NullaryOperator
-  = (operator:Global & { return isNullaryOperator(operator) }) { return text() }
+  = (operator:GlobalIdentifier & { return isNullaryOperator(operator) }) { return text() }
 
 UnaryExpression
-  = obj:TxPropertyIdentifier "[" args:Expressions "]." prop:Identifier { return createInstructionExpression("unaryExpression", location(), obj + "[i]." + prop, args)}
+  = obj:TxIdentifier "[" args:Expressions "]." prop:PropertyIdentifier { return createInstructionExpression("unaryExpression", location(), obj + "[i]." + prop, args)}
 
 CallExpression
   = name:FunctionIdentifier "(" args:Expressions ")" { return createInstructionExpression("callExpression", location(), name, args) }
@@ -138,7 +138,7 @@ FunctionIdentifier "functionIdentifier"
 IntegerIdentifier "integerIdentifier"
   = [-]?[0-9]+ { return text() }
 
-TxPropertyIdentifier 
+TxIdentifier 
   = "tx.inputs" / "tx.outputs" { return text() }
 
 Nothing "nothing"
@@ -158,5 +158,8 @@ Comment "comment"
 Operator
   = [^ \t\n\rA-Za-z1-9\[\]\(\)]+ { return text() }
 
-Global 
+GlobalIdentifier 
   = "tx.version" / "tx.locktime" / "tx.weight" / "tx.inputs.length" / "tx.outputs.length" { return text() }
+
+PropertyIdentifier
+  = "asset" { return text() }

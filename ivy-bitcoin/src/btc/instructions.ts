@@ -26,7 +26,7 @@ export type UnaryOperator =
 
 
 export function isComparisonOperator(str: string): str is ComparisonOperator {
-  return ["==", "!="].indexOf(str) !== -1
+  return ["==", "!="].includes(str)
 }
 
 export function isNullaryOperator(str: string): str is NullaryOperator {

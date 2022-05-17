@@ -27,7 +27,8 @@
     "clean": "rm -rf lib",
     "compile-pegjs": "pegjs -o lib/parser.js src/parser.pegjs",
     "compile-tsc": "tsc",
-    "test": "mocha src/test/*.ts --require ./node_modules/ts-node/register"
+    "test": "mocha src/test/*.ts --require ./node_modules/ts-node/register",
+    "test:experimental": "mocha src/test/experiment.ts --require ./node_modules/ts-node/register"
   },
   "types": "./lib/index.d.ts"
 }

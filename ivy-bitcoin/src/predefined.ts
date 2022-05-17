@@ -19,7 +19,8 @@ export const DEMO_ID_LIST = [
   "EscrowWithDelay",
   "VaultSpend",
   "HTLC",
-  "HodlVault"
+  "HodlVault",
+  "HelloWorldSpend",
 ]
 
 export const DEMO_CONTRACTS = {
@@ -188,7 +189,21 @@ export const DEMO_CONTRACTS = {
     unlock val
     of asset
   }
-}`
+}`,
+  HelloWorldSpend: `
+    contract HelloWorldSpend(
+      publicKey: PublicKey,
+      message: Bytes,
+      val: Value,
+      asset: Asset
+    ) {
+      clause spend(sig: DataSignature) {
+        verify checkSigFromStack(sig, message, publicKey)
+        unlock val
+        of asset
+      }
+    }
+  `
 }
 
 const Bytes = Buffer.from(
@@ -233,6 +248,7 @@ const PrivateKeys = [
 ]
 // 250k
 const PriceTargetBytes = Buffer.from("03d090", "hex");
+const Message = Buffer.from("e0f033ef0a55b0d94520e7b0501f4bb2f1a8a9a632497ef33e868aa27f86393b", "hex");
 
 export const TEST_CONTRACT_ARGS = {
   LockWithPublicKey: [PublicKeys[0], 0, "btc"],
@@ -250,7 +266,8 @@ export const TEST_CONTRACT_ARGS = {
   HashOperations: [Sha256Bytes, Sha1Bytes, Ripemd160Bytes, 0, "btc"],
   RevealNumber: [5, 0, "btc"],
   CheckSize: [0, "btc"],
-  HodlVault: [PublicKeys[0], PublicKeys[1], PriceTargetBytes, 0, "btc"]
+  HodlVault: [PublicKeys[0], PublicKeys[1], PriceTargetBytes, 0, "btc"],
+  HelloWorldSpend: [PublicKeys[0], Message, 6000, "btc"]
 }
 
 export const TEST_CONTRACT_CLAUSE_NAMES = {
@@ -269,7 +286,8 @@ export const TEST_CONTRACT_CLAUSE_NAMES = {
   HashOperations: "reveal",
   RevealNumber: "reveal",
   CheckSize: "reveal",
-  HodlVault: "spend"
+  HodlVault: "spend",
+  HelloWorldSpend: "spend"
 }
 
 export const TEST_CONTRACT_TIMES = {
@@ -341,9 +359,9 @@ function generateSignature(id: string, privateKeyIndex: number): string {
   return sig.toString("hex")
 }
 
-function generateDataSignature(id: string, privateKeyIndex: number): string {
+function generateDataSignature(id: string, message: Buffer, privateKeyIndex: number): string {
   const privateKey = PrivateKeys[privateKeyIndex]
-  const datasig = createDataSignature(TEST_CONTRACT_ARGS[id][2], privateKey)
+  const datasig = createDataSignature(message, privateKey)
   if (datasig === undefined) {
     throw new Error("sig unexpectedly undefined")
   }
@@ -380,8 +398,11 @@ export const TEST_SPEND_ARGUMENTS = {
   HTLC: [Bytes, generateSignature("HTLC", 1)],
   HodlVault: [
     generateSignature("HodlVault", 0),
-    generateDataSignature("HodlVault", 1),
+    generateDataSignature("HodlVault", PriceTargetBytes, 1),
     PriceTargetBytes,
+  ],
+  HelloWorldSpend: [
+    generateDataSignature("HelloWorldSpend", Message, 0),
   ]
 }
 

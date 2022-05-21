@@ -5,10 +5,15 @@ jobs:
     name: Build, lint, and test on Node ${{ matrix.node }} and ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        working-directory: packages/ionio
+
     strategy:
       matrix:
-        node: ['10.x', '12.x', '14.x']
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        node: ['12.x', '14.x', '16.x']
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout repo
@@ -30,3 +35,4 @@ jobs:
 
       - name: Build
         run: yarn build
+

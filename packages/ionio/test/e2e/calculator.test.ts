@@ -4,7 +4,7 @@ import { bob, network } from '../fixtures/vars';
 import { payments, TxOutput } from 'liquidjs-lib';
 import { faucetComplex } from '../utils';
 
-describe('HodlVault', () => {
+describe('Calculator', () => {
   let calculator: Contract;
   let prevout: TxOutput;
   let utxo: { txid: string; vout: number; value: number; asset: string };

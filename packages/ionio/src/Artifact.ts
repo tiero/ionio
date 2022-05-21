@@ -7,8 +7,17 @@ export interface Parameter {
 }
 
 export interface Requirement {
-  type: 'input' | 'output' | 'after' | 'older';
-  value: Input | Output | number;
+  type: RequirementType;
+  value: Input | Output | number | undefined;
+}
+
+export enum RequirementType {
+  Input = 'input',
+  Output = 'output',
+  After = 'after',
+  Older = 'older',
+  Signature = 'signature',
+  DataSignature = 'datasignature',
 }
 
 export interface Input {

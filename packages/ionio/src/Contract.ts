@@ -12,12 +12,26 @@ import { address, script, TxOutput } from 'liquidjs-lib';
 import { H_POINT } from './constants';
 import { Outpoint } from './interfaces';
 
-export class Contract {
+export interface ContractInterface {
+  name: string;
+  address: string;
+  fundingOutpoint: Outpoint | undefined;
+  bytesize: number;
+  functions: {
+    [name: string]: ContractFunction;
+  };
+  leaves: { scriptHex: string }[];
+  scriptPubKey: Buffer;
+  attach(txid: string, vout: number, prevout: TxOutput): ContractInterface;
+  getTaprootTree(): HashTree;
+}
+
+export class Contract implements ContractInterface {
   name: string;
   address: string;
   fundingOutpoint: Outpoint | undefined;
   // TODO add bytesize calculation
-  //bytesize: number;
+  bytesize: number = 0;
 
   functions: {
     [name: string]: ContractFunction;
@@ -39,7 +53,6 @@ export class Contract {
 
     this.leaves = [];
     this.functions = {};
-
     // Populate the functions object with the contract's functions
     // (with a special case for single function, which has no "function selector")
     this.artifact.functions.forEach((f, i) => {
@@ -63,7 +76,6 @@ export class Contract {
       });
     });
 
-
     // name
     this.name = artifact.contractName;
 
@@ -77,10 +89,10 @@ export class Contract {
   }
 
   getTaprootTree(): HashTree {
-    return toHashTree(this.leaves);
+    return toHashTree(this.leaves, true);
   }
 
-  at(txid: string, vout: number, prevout: TxOutput): this {
+  attach(txid: string, vout: number, prevout: TxOutput): this {
     // check we are using an actual funding outpoint for the script of the contract
     if (!prevout.script.equals(this.scriptPubKey))
       throw new Error('given prevout script does not match contract scriptPubKey');
@@ -90,6 +102,7 @@ export class Contract {
       vout,
       prevout
     };
+
 
     return this;
   }

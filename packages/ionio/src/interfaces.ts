@@ -14,3 +14,7 @@ export interface Outpoint {
   vout: number,
   prevout: TxOutput
 }
+
+export interface IdentityProvider {
+  signTransaction(psetBase64: string): Promise<string>;
+}

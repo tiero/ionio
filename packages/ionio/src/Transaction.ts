@@ -6,8 +6,15 @@ import {
   script,
   witnessStackToScriptWitness,
 } from 'liquidjs-lib';
+import {
+  findScriptPath,
+  tapLeafHash,
+  TaprootLeaf,
+  toHashTree,
+} from 'liquidjs-lib/src/bip341';
 import { Network } from 'liquidjs-lib/src/networks';
 import { Function, RequirementType } from './Artifact';
+import { H_POINT, LEAF_VERSION_TAPSCRIPT } from './constants';
 import { IdentityProvider, Outpoint, PrimitiveType } from './interfaces';
 
 export interface TransactionInterface {
@@ -36,22 +43,36 @@ export class Transaction implements TransactionInterface {
     private artifactFunction: Function,
     private selector: number,
     private parameters: Buffer[],
-    private leaves: { scriptHex: string }[],
+    private leaves: TaprootLeaf[],
+    private parity: number,
     private fundingUtxo: Outpoint | undefined,
     private network: Network
   ) {
     this.psbt = new Psbt({ network: this.network });
     if (this.fundingUtxo) {
       const leafToSpend = this.leaves[this.selector];
+      const leafVersion = leafToSpend.version || LEAF_VERSION_TAPSCRIPT;
+      const leafHash = tapLeafHash(leafToSpend);
+      const hashTree = toHashTree(this.leaves);
+      const path = findScriptPath(hashTree, leafHash);
+
+      const parityBit = Buffer.of(leafVersion + this.parity);
+
+      const controlBlock = Buffer.concat([
+        parityBit,
+        H_POINT.slice(1),
+        ...path,
+      ]);
+
       this.psbt.addInput({
         hash: this.fundingUtxo.txid,
         index: this.fundingUtxo.vout,
         witnessUtxo: this.fundingUtxo.prevout,
         tapLeafScript: [
           {
-            leafVersion: 0,
+            leafVersion: leafVersion,
             script: Buffer.from(leafToSpend.scriptHex, 'hex'),
-            controlBlock: Buffer.alloc(33),
+            controlBlock,
           },
         ],
       });
@@ -117,7 +138,8 @@ export class Transaction implements TransactionInterface {
 
   async unlock(signer?: IdentityProvider): Promise<this> {
     let witnessStack: Buffer[] = [];
-    this.artifactFunction.require.forEach(async ({ type }) => {
+
+    for (const { type } of this.artifactFunction.require) {
       switch (type) {
         case RequirementType.Signature:
           if (!signer)
@@ -130,12 +152,16 @@ export class Transaction implements TransactionInterface {
           );
           this.psbt = Psbt.fromBase64(signedPtxBase64);
 
-          const { tapScriptSig } = this.psbt.data.inputs[this.fundingUtxoIndex];
+          const { tapKeySig, tapScriptSig } = this.psbt.data.inputs[
+            this.fundingUtxoIndex
+          ];
           if (tapScriptSig && tapScriptSig.length > 0) {
             witnessStack = [
               ...tapScriptSig.map(s => s.signature),
               ...witnessStack,
             ];
+          } else if (tapKeySig) {
+            witnessStack = [tapKeySig, ...witnessStack];
           }
           break;
 
@@ -149,18 +175,17 @@ export class Transaction implements TransactionInterface {
               'contract requires data signature but no DataSignature was provided'
             );
       }
-    });
+    }
 
     this.psbt.finalizeInput(this.fundingUtxoIndex!, (_, input) => {
       return {
         finalScriptSig: undefined,
-        finalScriptWitness: witnessStackToScriptWitness(
-          witnessStack.concat([
-            ...this.parameters, // TODO: check if this is correct
-            input.tapLeafScript![0].script,
-            input.tapLeafScript![0].controlBlock,
-          ])
-        ),
+        finalScriptWitness: witnessStackToScriptWitness([
+          ...witnessStack,
+          ...this.parameters, // TODO: check if this is correct
+          input.tapLeafScript![0].script,
+          input.tapLeafScript![0].controlBlock,
+        ]),
       };
     });
     return this;

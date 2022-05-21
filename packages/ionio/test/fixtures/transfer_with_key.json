@@ -1,0 +1,18 @@
+{
+  "contractName": "TransferWithKey",
+  "functions": [
+    {
+      "name": "transfer",
+      "functionInputs": [],
+      "require": [
+        {
+          "type": "signature"
+        }
+      ],
+      "asm": [
+        "03825167d4d50b89d3ad7ddcaa4d6ab33d239d48e367a8eaf3bd40c96372bea40a",
+        "OP_CHECKSIG"
+      ]
+    }
+  ]
+}

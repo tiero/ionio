@@ -7,10 +7,12 @@ import {
   BIP341Factory,
   HashTree,
   TinySecp256k1Interface,
+  TaprootLeaf,
 } from 'liquidjs-lib/src/bip341';
 import { address, script, TxOutput } from 'liquidjs-lib';
 import { H_POINT } from './constants';
 import { Outpoint } from './interfaces';
+import { tweakPublicKey } from './utils/schnorr';
 
 export interface ContractInterface {
   name: string;
@@ -37,8 +39,9 @@ export class Contract implements ContractInterface {
     [name: string]: ContractFunction;
   };
 
-  leaves: { scriptHex: string }[];
+  leaves: TaprootLeaf[];
   scriptPubKey: Buffer;
+  private parity: number;
 
   constructor(
     private artifact: Artifact,
@@ -70,6 +73,12 @@ export class Contract implements ContractInterface {
         if (typeof op === 'number' && Number.isInteger(op)) {
           return script.number.encode(op).toString('hex');
         }
+
+        // if PublicKey hex encoded encode as XOnlyPublicKey bytes
+        if (typeof op === 'string' && op.length === 33) {
+          return Buffer.from(op, 'hex').slice(1);
+        }
+
         return op;
       });
 
@@ -81,11 +90,16 @@ export class Contract implements ContractInterface {
     // name
     this.name = artifact.contractName;
 
-    // address
     const bip341 = BIP341Factory(this.ecclib);
     const hashTree = toHashTree(this.leaves);
+
+    // scriptPubKey & address
     this.scriptPubKey = bip341.taprootOutputScript(H_POINT, hashTree);
     this.address = address.fromOutputScript(this.scriptPubKey, this.network);
+
+    // parity bit
+    const { parity } = tweakPublicKey(H_POINT, hashTree.hash, this.ecclib);
+    this.parity = parity;
     // TODO add bytesize calculation
     //this.bytesize = calculateBytesize(this.leaves);
   }
@@ -131,6 +145,7 @@ export class Contract implements ContractInterface {
         selector,
         encodedArgs,
         this.leaves,
+        this.parity,
         this.fundingOutpoint,
         this.network
       );

@@ -6,6 +6,7 @@ export enum PrimitiveType {
   Boolean = 'Boolean',
   Signature = 'Signature',
   DataSignature = 'DataSignature',
+  PublicKey = 'PublicKey',
   XOnlyPublicKey = 'XOnlyPublicKey',
 }
 

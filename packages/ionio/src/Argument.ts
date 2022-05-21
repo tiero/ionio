@@ -1,4 +1,4 @@
-import { numberToBytes } from './bytes';
+import { numberToBytes } from './utils/bytes';
 import { PrimitiveType } from './interfaces';
 
 export type Argument = number | boolean | string | Buffer | Uint8Array;

@@ -25,28 +25,28 @@ An `Artifact` object is the result of compiling a Elements contract with Ionio c
 import { Contract, networks } from '@ionio-lang/ionio';
 
 const artifact = {
-  contractName: "Calculator",
-  functions: [
+  "contractName": "Calculator",
+  "functions": [
     {
-      name: "sumMustBeThree"
-      inputs: [
+      "name": "sumMustBeThree",
+      "functionInputs": [
         {
-          name: "foo",
-          type: "Number"
+          "name": "foo",
+          "type": "Number"
         },
         {
-          name: "bar",
-          type: "Number"
+          "name": "bar",
+          "type": "Number"
         }
       ],
-      require: [],
-      asm: [
-        "OP_ADD"
+      "require": [],
+      "asm": [
+        "OP_ADD",
         3,
-        "OP_EQUAL'
+        "OP_EQUAL"
       ]
     }
-  ],
+  ]
 };
 
 
@@ -89,21 +89,36 @@ These contract functions return an incomplete `Transaction` object, which needs 
 #### Example
 ```ts
 import { aliceScript, contractUtxo } from './somewhere';
-import { networks } from '@ionio-lang/ionio';
+import { witnessStackToScriptWitness } from '@ionio-lang/ionio';
 
-const tx = await contract.functions
-  .sumMustBeThree(1, 2);
+const feeAmount = 100;
 
-tx.withInput(contractUtxo) // we assume is an utxo of 5000 sats of L-BTC
-  .withOutput(aliceScript, 4500, networks.testnet.assetHash))
-  .withFeeOutput(500); 
+// lets instantiare the contract using the funding transacton
+const instance = contract.at(utxo.txid, utxo.vout, prevout);
 
-const psbt = tx.toPsbt();
+const tx = instance.functions
+  .sumMustBeThree(1, 2)
+  .withRecipient(aliceScript, 9900)
+  .withFeeOutput(100);
 
-// if the contract needed a singature on the stack we could have added it here before finalizing the transaction
+// extract tx and sign
+// eg. With Marina browser extension
+const signedTx = await window.marina.signTransaction(tx.psbt.toBase64());
 
-const hex = psbt
-  .finalizeAllInputs()
-  .extractTransaction()
-  .toHex();
+// add parameters on the stack
+const finalizedTx = Psbt.fromBase64(signedTx)
+  .finalizeInput(0, (_, input) => {
+    return {
+      finalScriptSig: undefined,
+      finalScriptWitness: witnessStackToScriptWitness([
+        ...input.tapScriptSig!.map((s) => s.signature),
+        ...tx.parameters,
+        input.tapLeafScript![0].script,
+        input.tapLeafScript![0].controlBlock,
+      ]),
+    }
+  });
+
+// extract and broadcast
+const extractedTx = finalizedTx.extractTransaction().toHex();
 ```

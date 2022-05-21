@@ -1,8 +1,9 @@
 import fs from 'fs';
+import { PrimitiveType } from './interfaces';
 
 export interface Parameter {
   name: string;
-  type: string;
+  type: PrimitiveType;
 }
 
 export interface Requirement {
@@ -27,7 +28,7 @@ export interface Output {
 
 export interface Function {
   name: string;
-  parameters: Parameter[];
+  functionInputs: Parameter[];
   require: Requirement[];
   asm: string[];
 }
@@ -35,7 +36,7 @@ export interface Function {
 export interface Artifact {
   contractName: string;
   functions: Function[];
-  //constructorInputs: AbiInput[];
+  //constructorInputs: Parameter[];
 }
 
 export function importArtifact(artifactFile: string): Artifact {

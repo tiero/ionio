@@ -1,23 +1,22 @@
 import { numberToBytes } from './bytes';
+import { PrimitiveType } from './interfaces';
 
-export type Argument = number | boolean | string | Uint8Array;
+export type Argument = number | boolean | string | Buffer | Uint8Array;
 
-export function encodeArgument(value: Argument, typeStr: string): Uint8Array {
-  console.log(`Encoding argument ${value} of type ${typeStr}`);
-
+export function encodeArgument(value: Argument, typeStr: PrimitiveType): Buffer {
   switch (typeStr) {
-    case 'Number':
+    case PrimitiveType.Number:
       if (typeof value !== 'number') {
         throw new TypeError(typeof value, typeStr);
       }
-      return numberToBytes(value);
+      return Buffer.from(numberToBytes(value));
     default:
       throw new Error(`Unsupported type ${typeStr}`);
   }
 }
 
 export class TypeError extends Error {
-  constructor(actual: string, expected: string) {
+  constructor(actual: string, expected: PrimitiveType) {
     super(
       `Found type '${actual}' where type '${expected.toString()}' was expected`
     );

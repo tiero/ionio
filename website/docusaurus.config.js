@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Ionio Language',
-  tagline: 'Easily write and interact with Elements smart contracts.',
+  tagline: 'Easily write and interact with Simplicity smart contracts for Elements-based blockchains, such as Liquid Network.',
   url: 'https://ionio-lang.org',
   baseUrl: '/',
   onBrokenLinks: 'throw',
@@ -63,7 +63,7 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'Tutorial',
+                label: 'Introduction',
                 to: '/docs/intro',
               },
             ],
@@ -94,8 +94,13 @@ const config = {
         copyright: `Copyright © ${new Date().getFullYear()} Vulpem Ventures OU. Built with Docusaurus.`,
       },
       prism: {
-        theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
+        theme: require('prism-react-renderer/themes/nightOwlLight'),
+        darkTheme: require('prism-react-renderer/themes/nightOwl'),
+      },
+      colorMode: {
+        defaultMode: 'dark',
+        disableSwitch: false,
+        respectPrefersColorScheme: false,
       },
     }),
 };

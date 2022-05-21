@@ -1,7 +1,6 @@
-import axios from "axios";
-import { Transaction } from "liquidjs-lib";
+import axios from 'axios';
+import { Transaction } from 'liquidjs-lib';
 const APIURL = process.env.APIURL || 'http://localhost:3001';
-
 
 export function sleep(ms: number): Promise<any> {
   return new Promise((res: any): any => setTimeout(res, ms));
@@ -14,7 +13,7 @@ export async function faucetComplex(address: string, amountFractional: number) {
   return {
     utxo,
     prevout,
-  }
+  };
 }
 
 export async function faucet(address: string, amount: number): Promise<any> {
@@ -54,7 +53,7 @@ export async function fetchUtxo(txId: string): Promise<any> {
 export async function broadcast(
   txHex: string,
   verbose = true,
-  api: string = APIURL,
+  api: string = APIURL
 ): Promise<string> {
   try {
     const resp = await axios.get(`${api}/broadcast?tx=${txHex}`);

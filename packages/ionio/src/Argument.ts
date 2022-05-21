@@ -3,7 +3,10 @@ import { PrimitiveType } from './interfaces';
 
 export type Argument = number | boolean | string | Buffer | Uint8Array;
 
-export function encodeArgument(value: Argument, typeStr: PrimitiveType): Buffer {
+export function encodeArgument(
+  value: Argument,
+  typeStr: PrimitiveType
+): Buffer {
   switch (typeStr) {
     case PrimitiveType.Number:
       if (typeof value !== 'number') {

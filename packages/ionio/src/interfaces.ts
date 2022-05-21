@@ -1,4 +1,4 @@
-import { TxOutput } from "liquidjs-lib"
+import { TxOutput } from 'liquidjs-lib';
 
 export enum PrimitiveType {
   Number = 'Number',
@@ -10,9 +10,9 @@ export enum PrimitiveType {
 }
 
 export interface Outpoint {
-  txid: string,
-  vout: number,
-  prevout: TxOutput
+  txid: string;
+  vout: number;
+  prevout: TxOutput;
 }
 
 export interface IdentityProvider {

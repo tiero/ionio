@@ -58,7 +58,9 @@ export class Contract implements ContractInterface {
     this.artifact.functions.forEach((f, i) => {
       const expectedProperties = ['name', 'functionInputs', 'require', 'asm'];
       if (!expectedProperties.every(property => property in f)) {
-        throw new Error(`Invalid or incomplete function provided at index ${i}`);
+        throw new Error(
+          `Invalid or incomplete function provided at index ${i}`
+        );
       }
       this.functions[f.name] = this.createFunction(f, i);
 
@@ -95,14 +97,15 @@ export class Contract implements ContractInterface {
   attach(txid: string, vout: number, prevout: TxOutput): this {
     // check we are using an actual funding outpoint for the script of the contract
     if (!prevout.script.equals(this.scriptPubKey))
-      throw new Error('given prevout script does not match contract scriptPubKey');
+      throw new Error(
+        'given prevout script does not match contract scriptPubKey'
+      );
 
     this.fundingOutpoint = {
       txid,
       vout,
-      prevout
+      prevout,
     };
-
 
     return this;
   }
@@ -129,7 +132,7 @@ export class Contract implements ContractInterface {
         encodedArgs,
         this.leaves,
         this.fundingOutpoint,
-        this.network,
+        this.network
       );
     };
   }

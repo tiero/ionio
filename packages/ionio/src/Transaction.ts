@@ -15,7 +15,7 @@ import {
 import { Network } from 'liquidjs-lib/src/networks';
 import { Function, RequirementType } from './Artifact';
 import { H_POINT, LEAF_VERSION_TAPSCRIPT } from './constants';
-import { IdentityProvider, Outpoint, PrimitiveType } from './interfaces';
+import { Signer, Outpoint, PrimitiveType } from './interfaces';
 
 export interface TransactionInterface {
   psbt: Psbt;
@@ -31,7 +31,7 @@ export interface TransactionInterface {
     assetID: string
   ): TransactionInterface;
   withFeeOutput(fee: number): TransactionInterface;
-  unlock(signer?: IdentityProvider): Promise<TransactionInterface>;
+  unlock(signer?: Signer): Promise<TransactionInterface>;
 }
 
 export class Transaction implements TransactionInterface {
@@ -136,7 +136,7 @@ export class Transaction implements TransactionInterface {
     return this;
   }
 
-  async unlock(signer?: IdentityProvider): Promise<this> {
+  async unlock(signer?: Signer): Promise<this> {
     let witnessStack: Buffer[] = [];
 
     for (const { type } of this.artifactFunction.require) {
@@ -144,7 +144,7 @@ export class Transaction implements TransactionInterface {
         case RequirementType.Signature:
           if (!signer)
             throw new Error(
-              'contract requires signature but no IdentityProvider was provided'
+              'contract requires signature but no Signer was provided'
             );
 
           const signedPtxBase64 = await signer.signTransaction(

@@ -75,8 +75,9 @@ export class Contract implements ContractInterface {
         }
 
         // if PublicKey hex encoded encode as XOnlyPublicKey bytes
-        if (typeof op === 'string' && op.length === 33) {
-          return Buffer.from(op, 'hex').slice(1);
+        if (typeof op === 'string' && Buffer.from(op, 'hex').length === 33) {
+          const xOnlyPubKey = Buffer.from(op, 'hex').slice(1);
+          return xOnlyPubKey.toString('hex');
         }
 
         return op;

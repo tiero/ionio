@@ -5,7 +5,7 @@ import { payments, Psbt, TxOutput } from 'liquidjs-lib';
 import { broadcast, faucetComplex } from '../utils';
 import { Signer } from '../../src/interfaces';
 
-describe('TransferWithKey', () => {
+describe('SynteticAsset', () => {
   let contract: Contract;
   let prevout: TxOutput;
   let utxo: { txid: string; vout: number; value: number; asset: string };

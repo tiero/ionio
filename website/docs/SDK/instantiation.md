@@ -116,7 +116,7 @@ const tx = instance.functions
 
 // Finalize the transaction, checking for all requirements to be satisfied. 
 // In this case we do not need a signature to unlock the funds
-// In case of signature needed, unlock accepts an optional parameter of IdentityProvider interface
+// In case of signature needed, unlock accepts an optional parameter of Signer interface
 const signedTx = await tx.unlock();
 
 // extract and broadcast

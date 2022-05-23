@@ -1,7 +1,7 @@
 import { Contract } from '../../src';
 import * as ecc from 'tiny-secp256k1';
 import { alicePk, network } from '../fixtures/vars';
-import { payments, Psbt, TxOutput } from 'liquidjs-lib';
+import { payments, Psbt, Transaction, TxOutput } from 'liquidjs-lib';
 import { broadcast, faucetComplex } from '../utils';
 import { Signer } from '../../src/interfaces';
 
@@ -13,7 +13,20 @@ describe('TransferWithKey', () => {
   const signer: Signer = {
     signTransaction: async (base64: string): Promise<string> => {
       const ptx = Psbt.fromBase64(base64);
-      ptx.signAllInputs(alicePk);
+
+      for (let index = 0; index < ptx.data.inputs.length; index++) {
+        const leafHash = tapLeafHash(leafToSpend);
+        const sighashForSig = ptx.TX.hashForWitnessV1(
+          index,
+          ptx.data.inputs.map((u) => u.witnessUtxo.script),
+          ptx.data.inputs.map((u) => ({ value: u.witnessUtxo.value, asset: u.witnessUtxo.asset })),
+          Transaction.SIGHASH_DEFAULT,
+          network.genesisBlockHash,
+          ptx.data.inputs[index].tapLeafScript[0]. ,
+        );
+        const sig = Buffer.from(alicePk.signSchnorr(msg, signer.privateKey!, Buffer.alloc(32)))
+      }
+     
       return ptx.toBase64();
     },
   };
@@ -21,7 +34,7 @@ describe('TransferWithKey', () => {
   beforeAll(async () => {
     // eslint-disable-next-line global-require
     const artifact = require('../fixtures/transfer_with_key.json');
-    contract = new Contract(artifact, network, ecc);
+    contract = new Contract(artifact, [], network, ecc);
     const response = await faucetComplex(contract.address, 0.0001);
 
     prevout = response.prevout;

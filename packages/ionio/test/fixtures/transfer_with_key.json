@@ -1,5 +1,6 @@
 {
   "contractName": "TransferWithKey",
+  "constructorInputs": [],
   "functions": [
     {
       "name": "transfer",

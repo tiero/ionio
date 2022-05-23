@@ -8,17 +8,44 @@ export interface Parameter {
 
 export interface Requirement {
   type: RequirementType;
-  value: Input | Output | number | undefined;
+  value: Input | Output | ScriptPubKey | number | string | undefined;
+  covenantIndex?: number; // for input* or output* requirements only
 }
 
 export enum RequirementType {
+  // Input
   Input = 'input',
   Output = 'output',
+  // Inputs: granular fields
+  InputValue = 'inputvalue',
+  InputScript = 'inputscript',
+  InputAsset = 'inputasset',
+  InputNonce = 'inputnonce',
+  // Outputs: granular fields
+  OutputValue = 'outputvalue',
+  OutputScript = 'outputscript',
+  OutputAsset = 'outputasset',
+  OutputNonce = 'outputnonce',
+  // Timelocks
   After = 'after',
   Older = 'older',
+  // Signatures
   Signature = 'signature',
   DataSignature = 'datasignature',
 }
+
+
+
+export enum SegwitVersion {
+  LEGACY = -1,
+  V0 = 0,
+  V1 = 1,
+}
+
+export type ScriptPubKey = {
+  version: SegwitVersion;
+  program: string;
+};
 
 export interface Input {
   hash: string;
@@ -28,8 +55,9 @@ export interface Input {
   asset: string;
 }
 
+
 export interface Output {
-  script: string;
+  script: ScriptPubKey;
   value: number;
   asset: string;
   nonce: string;
@@ -45,7 +73,7 @@ export interface Function {
 export interface Artifact {
   contractName: string;
   functions: Function[];
-  //constructorInputs: Parameter[];
+  constructorInputs: Parameter[];
 }
 
 export function importArtifact(artifactFile: string): Artifact {

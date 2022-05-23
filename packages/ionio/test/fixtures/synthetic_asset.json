@@ -1,0 +1,124 @@
+{
+  "contractName": "SyntheticAsset",
+  "constructorInputs": [
+    {
+      "name": "issuerPk",
+      "type": "XOnlyPublicKey"
+    },
+    {
+      "name": "sponsorPk",
+      "type": "XOnlyPublicKey"
+    },
+    {
+      "name": "synthAsset",
+      "type": "Asset"
+    },
+    {
+      "name": "payoutAmount",
+      "type": "Number"
+    },
+    {
+      "name": "collateralAsset",
+      "type": "Asset"
+    },
+    {
+      "name": "payoutAmount",
+      "type": "Number"
+    }
+  ],
+  "functions": [
+    {
+      "name": "redeem",
+      "functionInputs": [],
+      "require": [
+        {
+          "type": "output",
+          "covenantIndex": 0,
+          "value": {
+            "script" : {
+              "version": -1,
+              "program": "6a"
+            },
+            "value": "$synthAmount",
+            "asset": "$synthAsset",
+            "nonce": ""
+          }
+        },
+        {
+          "type": "output",
+          "covenantIndex": 1,
+          "value": {
+            "script" : {
+              "version": 1,
+              "program": "$issuerPk"
+            },
+            "value": "$payoutAmount",
+            "asset": "$collateralAsset",
+            "nonce": ""
+          }
+        },
+        {
+          "type": "signature"
+        }
+      ],
+      "asm":[
+        "OP_0",
+        "OP_INSPECTOUTPUTASSET",
+        "OP_1",
+        "OP_EQUALVERIFY",
+        "$synthAsset",
+        "OP_EQUALVERIFY",
+
+        "OP_0",
+        "OP_INSPECTOUTPUTVALUE",
+        "OP_1",
+        "OP_EQUALVERIFY",
+        "$synthAmount",
+        "OP_EQUALVERIFY",
+      
+        "OP_0",
+        "OP_INSPECTOUTPUTSCRIPTPUBKEY",
+        -1,
+        "OP_EQUALVERIFY",
+        "6a",
+        "OP_SHA256",
+        "OP_EQUALVERIFY",
+
+        "OP_0",
+        "OP_INSPECTOUTPUTNONCE",
+        "OP_0",
+        "OP_EQUALVERIFY",
+
+
+        "OP_1",
+        "OP_INSPECTOUTPUTASSET",
+        "OP_1",
+        "OP_EQUALVERIFY",
+        "$collateralAsset",
+        "OP_EQUALVERIFY",
+
+        "OP_1",
+        "OP_INSPECTOUTPUTVALUE",
+        "OP_1",
+        "OP_EQUALVERIFY",
+        "$payoutAmount",
+        "OP_EQUALVERIFY",
+
+        "OP_1",
+        "OP_INSPECTOUTPUTSCRIPTPUBKEY",
+        "OP_1",
+        "OP_EQUALVERIFY",
+        "$issuerPk",
+        "OP_EQUALVERIFY",
+
+        "OP_1",
+        "OP_INSPECTOUTPUTNONCE",
+        "OP_0",
+        "OP_EQUALVERIFY",
+
+        "$sponsorPk",
+        "OP_CHECKSIG"
+      ]
+    }
+  ]
+}

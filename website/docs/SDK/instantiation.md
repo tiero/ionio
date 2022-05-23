@@ -16,7 +16,7 @@ new Contract(
 )
 ```
 
-A Ionio contract can be instantiated by providing an `Artifact` object and optionally a `Network`.
+A Ionio contract can be instantiated by providing an `Artifact` object, a `Network` and a `TinySecp256k1Interface`.
 
 An `Artifact` object is the result of compiling a Ionio contract with Ionio compiler. Compilation ~~can~~ will be done using the standalone `ionioc` CLI or programmatically with the `ionioc` NPM package.
 
@@ -24,6 +24,8 @@ An `Artifact` object is the result of compiling a Ionio contract with Ionio comp
 #### Example
 ```ts
 import { Contract, networks } from '@ionio-lang/ionio';
+import * as ecc from 'tiny-secp256k1';
+
 
 const artifact = {
   "contractName": "Calculator",
@@ -51,7 +53,7 @@ const artifact = {
 };
 
 
-const contract = new Contract(artifact, networks.testnet);
+const contract = new Contract(artifact, networks.testnet, ecc);
 ```
 
 ### address

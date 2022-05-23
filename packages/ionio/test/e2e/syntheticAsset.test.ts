@@ -5,7 +5,7 @@ import { payments, Psbt, TxOutput } from 'liquidjs-lib';
 import { broadcast, faucetComplex } from '../utils';
 import { Signer } from '../../src/interfaces';
 
-describe('SynteticAsset', () => {
+describe('SyntheticAsset', () => {
   let contract: Contract;
   let prevout: TxOutput;
   let utxo: { txid: string; vout: number; value: number; asset: string };
@@ -20,7 +20,7 @@ describe('SynteticAsset', () => {
 
   beforeAll(async () => {
     // eslint-disable-next-line global-require
-    const artifact = require('../fixtures/transfer_with_key.json');
+    const artifact = require('../fixtures/synthetic_asset.json');
     contract = new Contract(artifact, network, ecc);
     const response = await faucetComplex(contract.address, 0.0001);
 
@@ -28,7 +28,7 @@ describe('SynteticAsset', () => {
     utxo = response.utxo;
   });
 
-  describe('transfer', () => {
+  describe('redeem', () => {
     it('should transfer with signature', async () => {
       const to = payments.p2wpkh({ pubkey: alicePk.publicKey }).address!;
       const amount = 9900;

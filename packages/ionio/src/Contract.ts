@@ -45,14 +45,28 @@ export class Contract implements ContractInterface {
 
   constructor(
     private artifact: Artifact,
+    constructorArgs: Argument[],
     private network: Network,
     private ecclib: TinySecp256k1Interface
   ) {
-    //TODO add constructorInputs if we figure out templating strings
-    const expectedProperties = ['contractName', 'functions'];
+    const expectedProperties = [
+      'contractName', 
+      'functions', 
+      //'constructorInputs'
+    ];
     if (!expectedProperties.every(property => property in artifact)) {
       throw new Error('Invalid or incomplete artifact provided');
     }
+
+    if (artifact.constructorInputs.length !== constructorArgs.length) {
+      throw new Error(`Incorrect number of arguments passed to ${artifact.contractName} constructor`);
+    }
+
+      // Encode arguments (this also performs type checking)
+    const encodedArgs = constructorArgs
+      .map((arg, i) => encodeArgument(arg, artifact.constructorInputs[i].type))
+      .reverse();
+    console.log(encodedArgs)
 
     this.leaves = [];
     this.functions = {};

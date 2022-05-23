@@ -4,6 +4,7 @@ export enum PrimitiveType {
   Number = 'Number',
   Bytes = 'Bytes',
   Boolean = 'Boolean',
+  Asset = 'Asset',
   Signature = 'Signature',
   DataSignature = 'DataSignature',
   PublicKey = 'PublicKey',

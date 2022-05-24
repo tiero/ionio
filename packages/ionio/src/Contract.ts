@@ -12,7 +12,8 @@ import {
 import { address, script, TxOutput } from 'liquidjs-lib';
 import { H_POINT } from './constants';
 import { Outpoint } from './interfaces';
-import { tweakPublicKey } from './utils/schnorr';
+import { tweakPublicKey } from './utils/taproot';
+import { templateToAsm } from './utils/asm';
 
 export interface ContractInterface {
   name: string;
@@ -66,7 +67,6 @@ export class Contract implements ContractInterface {
     const encodedArgs = constructorArgs
       .map((arg, i) => encodeArgument(arg, artifact.constructorInputs[i].type))
       .reverse();
-    console.log(encodedArgs)
 
     this.leaves = [];
     this.functions = {};
@@ -81,21 +81,8 @@ export class Contract implements ContractInterface {
       }
       this.functions[f.name] = this.createFunction(f, i);
 
-      // check for constructor inputs
-      const asm = f.asm.map(op => {
-        // if Number encode as bytes
-        if (typeof op === 'number' && Number.isInteger(op)) {
-          return script.number.encode(op).toString('hex');
-        }
-
-        // if PublicKey hex encoded encode as XOnlyPublicKey bytes
-        if (typeof op === 'string' && Buffer.from(op, 'hex').length === 33) {
-          const xOnlyPubKey = Buffer.from(op, 'hex').slice(1);
-          return xOnlyPubKey.toString('hex');
-        }
-
-        return op;
-      });
+      // check for constructor inputs to replace template strings starting with $
+      const asm = templateToAsm(f.asm, this.artifact.constructorInputs, encodedArgs);
 
       this.leaves.push({
         scriptHex: script.fromASM(asm.join(' ')).toString('hex'),
@@ -108,7 +95,7 @@ export class Contract implements ContractInterface {
     const bip341 = BIP341Factory(this.ecclib);
     const hashTree = toHashTree(this.leaves);
 
-    // scriptPubKey & address
+    // scriptPubKey & addressl
     this.scriptPubKey = bip341.taprootOutputScript(H_POINT, hashTree);
     this.address = address.fromOutputScript(this.scriptPubKey, this.network);
 

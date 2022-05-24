@@ -3,33 +3,38 @@
   "constructorInputs": [
     {
       "name": "issuerPk",
-      "type": "XOnlyPublicKey"
+      "type": "xonlypubkey"
     },
     {
-      "name": "sponsorPk",
-      "type": "XOnlyPublicKey"
+      "name": "borrowePk",
+      "type": "xonlypubkey"
     },
     {
-      "name": "synthAsset",
-      "type": "Asset"
-    },
-    {
-      "name": "payoutAmount",
-      "type": "Number"
+      "name": "borrowAsset",
+      "type": "asset"
     },
     {
       "name": "collateralAsset",
-      "type": "Asset"
+      "type": "asset"
+    },
+    {
+      "name": "borrowAmount",
+      "type": "bytes"
     },
     {
       "name": "payoutAmount",
-      "type": "Number"
+      "type": "bytes"
     }
   ],
   "functions": [
     {
       "name": "redeem",
-      "functionInputs": [],
+      "functionInputs": [
+        {
+          "name": "borrowSignature",
+          "type": "sig"
+        }
+      ],
       "require": [
         {
           "type": "output",
@@ -37,10 +42,10 @@
           "value": {
             "script" : {
               "version": -1,
-              "program": "6a"
+              "program": "0x6a"
             },
-            "value": "$synthAmount",
-            "asset": "$synthAsset",
+            "value": "$borrowAmount",
+            "asset": "$borrowAsset",
             "nonce": ""
           }
         },
@@ -58,7 +63,8 @@
           }
         },
         {
-          "type": "signature"
+          "type": "sig",
+          "value": "$borrowePk"
         }
       ],
       "asm":[
@@ -66,21 +72,21 @@
         "OP_INSPECTOUTPUTASSET",
         "OP_1",
         "OP_EQUALVERIFY",
-        "$synthAsset",
+        "$borrowAsset",
         "OP_EQUALVERIFY",
 
         "OP_0",
         "OP_INSPECTOUTPUTVALUE",
         "OP_1",
         "OP_EQUALVERIFY",
-        "$synthAmount",
+        "$borrowAmount",
         "OP_EQUALVERIFY",
       
         "OP_0",
         "OP_INSPECTOUTPUTSCRIPTPUBKEY",
-        -1,
+        "OP_1NEGATE",
         "OP_EQUALVERIFY",
-        "6a",
+        "0x6a",
         "OP_SHA256",
         "OP_EQUALVERIFY",
 
@@ -116,7 +122,7 @@
         "OP_0",
         "OP_EQUALVERIFY",
 
-        "$sponsorPk",
+        "$borrowePk",
         "OP_CHECKSIG"
       ]
     }

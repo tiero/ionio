@@ -1,10 +1,21 @@
 import fs from 'fs';
-import { PrimitiveType } from './interfaces';
 
 export interface Parameter {
   name: string;
   type: PrimitiveType;
 }
+
+export enum PrimitiveType {
+  Number = 'number',
+  Bytes = 'bytes',
+  Boolean = 'bool',
+  Asset = 'asset',
+  Signature = 'sig',
+  DataSignature = 'datasig',
+  PublicKey = 'pubkey',
+  XOnlyPublicKey = 'xonlypubkey',
+}
+
 
 export interface Requirement {
   type: RequirementType;
@@ -20,7 +31,8 @@ export enum RequirementType {
   InputValue = 'inputvalue',
   InputScript = 'inputscript',
   InputAsset = 'inputasset',
-  InputNonce = 'inputnonce',
+  InputHash = 'inputhash',
+  InputIndex = 'inputindex',
   // Outputs: granular fields
   OutputValue = 'outputvalue',
   OutputScript = 'outputscript',
@@ -29,9 +41,6 @@ export enum RequirementType {
   // Timelocks
   After = 'after',
   Older = 'older',
-  // Signatures
-  Signature = 'signature',
-  DataSignature = 'datasignature',
 }
 
 

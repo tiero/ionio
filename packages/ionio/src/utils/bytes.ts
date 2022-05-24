@@ -50,10 +50,20 @@ const uint8NumberToBytes = (value: number): Uint8Array => {
   return result;
 };
 
-export const numberToBytes = (value: number): Uint8Array => {
+const numberToBytes = (value: number): Uint8Array => {
   const byteLength: number = numberByteLength(value);
   const inputNumber: number =
     value < 0 ? Math.pow(2, 8 * byteLength - 1) - value : value;
   const uint8NumberBytes: Uint8Array = uint8NumberToBytes(inputNumber);
   return resizeBytes(uint8NumberBytes, byteLength);
 };
+
+
+export const numberToBuffer = (value: number, size: number = 8): Buffer => {
+  const valueBytes = Buffer.from(numberToBytes(value));
+  const valueLE = Buffer.from([
+    ...valueBytes,
+    ...Buffer.alloc(Math.max(size - valueBytes.length, 0)),
+  ]);
+  return valueLE;
+}

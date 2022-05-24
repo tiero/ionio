@@ -6,11 +6,11 @@
       "functionInputs": [
         {
           "name": "foo",
-          "type": "Number"
+          "type": "number"
         },
         {
           "name": "bar",
-          "type": "Number"
+          "type": "number"
         }
       ],
       "require": [],

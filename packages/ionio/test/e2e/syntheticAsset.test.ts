@@ -1,11 +1,13 @@
-import { Contract } from '../../src';
+import { Contract, numberToBuffer, Signer } from '../../src';
 import * as ecc from 'tiny-secp256k1';
 import { alicePk, network } from '../fixtures/vars';
 import { payments, Psbt, TxOutput } from 'liquidjs-lib';
-import { broadcast, faucetComplex } from '../utils';
-import { Signer } from '../../src/interfaces';
+import { broadcast, faucetComplex, mint } from '../utils';
 
 describe('SyntheticAsset', () => {
+  const issuer = payments.p2wpkh({ pubkey: alicePk.publicKey, network })!;
+  const borrower = payments.p2wpkh({ pubkey: alicePk.publicKey, network })!;
+
   let contract: Contract;
   let prevout: TxOutput;
   let utxo: { txid: string; vout: number; value: number; asset: string };
@@ -20,8 +22,30 @@ describe('SyntheticAsset', () => {
 
   beforeAll(async () => {
     // eslint-disable-next-line global-require
+    // mint synth
+    const { asset } = await mint(borrower.address!, 0.05);
+    
+    // instantiate Contract
     const artifact = require('../fixtures/synthetic_asset.json');
-    contract = new Contract(artifact, network, ecc);
+    contract = new Contract(
+      artifact, 
+      [
+        issuer.pubkey!.slice(1),
+        borrower.pubkey!.slice(1),
+        // borrow asset
+        asset,
+        // collateral asset
+        network.assetHash,
+        // borrow amount
+        //amounts are 8 bytes
+        numberToBuffer(500000, 8), 
+        // payout on redeem amount for issuer
+        //amounts are 8 bytes
+        numberToBuffer(100, 8) 
+      ], 
+      network, 
+      ecc
+    );
     const response = await faucetComplex(contract.address, 0.0001);
 
     prevout = response.prevout;
@@ -29,7 +53,7 @@ describe('SyntheticAsset', () => {
   });
 
   describe('redeem', () => {
-    it('should transfer with signature', async () => {
+    it('should redeem with burnt output', async () => {
       const to = payments.p2wpkh({ pubkey: alicePk.publicKey }).address!;
       const amount = 9900;
       const feeAmount = 100;
@@ -38,11 +62,11 @@ describe('SyntheticAsset', () => {
       const instance = contract.attach(utxo.txid, utxo.vout, prevout);
 
       const tx = instance.functions
-        .transfer()
+        .redeem(signer)
         .withRecipient(to, amount, network.assetHash)
         .withFeeOutput(feeAmount);
 
-      const signedTx = await tx.unlock(signer);
+      const signedTx = await tx.unlock();
       const hex = signedTx.psbt.extractTransaction().toHex();
       console.log(hex);
       const txid = await broadcast(hex);

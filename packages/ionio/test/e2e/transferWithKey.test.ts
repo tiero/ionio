@@ -1,40 +1,21 @@
 import { Contract } from '../../src';
 import * as ecc from 'tiny-secp256k1';
 import { alicePk, network } from '../fixtures/vars';
-import { payments, Psbt, Transaction, TxOutput } from 'liquidjs-lib';
-import { broadcast, faucetComplex } from '../utils';
-import { Signer } from '../../src/interfaces';
+import { payments, TxOutput } from 'liquidjs-lib';
+import { broadcast, faucetComplex, getSignerWithECPair } from '../utils';
+import { Signer } from '../../src/Signer';
+
 
 describe('TransferWithKey', () => {
   let contract: Contract;
   let prevout: TxOutput;
   let utxo: { txid: string; vout: number; value: number; asset: string };
-
-  const signer: Signer = {
-    signTransaction: async (base64: string): Promise<string> => {
-      const ptx = Psbt.fromBase64(base64);
-
-      for (let index = 0; index < ptx.data.inputs.length; index++) {
-        const leafHash = tapLeafHash(leafToSpend);
-        const sighashForSig = ptx.TX.hashForWitnessV1(
-          index,
-          ptx.data.inputs.map((u) => u.witnessUtxo.script),
-          ptx.data.inputs.map((u) => ({ value: u.witnessUtxo.value, asset: u.witnessUtxo.asset })),
-          Transaction.SIGHASH_DEFAULT,
-          network.genesisBlockHash,
-          ptx.data.inputs[index].tapLeafScript[0]. ,
-        );
-        const sig = Buffer.from(alicePk.signSchnorr(msg, signer.privateKey!, Buffer.alloc(32)))
-      }
-     
-      return ptx.toBase64();
-    },
-  };
+  const signer: Signer = getSignerWithECPair(alicePk, network);
 
   beforeAll(async () => {
     // eslint-disable-next-line global-require
     const artifact = require('../fixtures/transfer_with_key.json');
-    contract = new Contract(artifact, [], network, ecc);
+    contract = new Contract(artifact, [alicePk.publicKey.slice(1)], network, ecc);
     const response = await faucetComplex(contract.address, 0.0001);
 
     prevout = response.prevout;
@@ -51,13 +32,12 @@ describe('TransferWithKey', () => {
       const instance = contract.attach(utxo.txid, utxo.vout, prevout);
 
       const tx = instance.functions
-        .transfer()
+        .transfer(signer)
         .withRecipient(to, amount, network.assetHash)
         .withFeeOutput(feeAmount);
 
-      const signedTx = await tx.unlock(signer);
+      const signedTx = await tx.unlock();
       const hex = signedTx.psbt.extractTransaction().toHex();
-      console.log(hex);
       const txid = await broadcast(hex);
       expect(txid).toBeDefined();
     });

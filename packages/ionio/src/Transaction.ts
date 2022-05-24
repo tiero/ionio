@@ -13,9 +13,10 @@ import {
   toHashTree,
 } from 'liquidjs-lib/src/bip341';
 import { Network } from 'liquidjs-lib/src/networks';
-import { Function, RequirementType } from './Artifact';
+import { Function } from './Artifact';
 import { H_POINT, LEAF_VERSION_TAPSCRIPT } from './constants';
-import { Signer, Outpoint, PrimitiveType } from './interfaces';
+import { Outpoint } from './interfaces';
+import { isSigner, Signer } from './Signer';
 
 export interface TransactionInterface {
   psbt: Psbt;
@@ -31,7 +32,7 @@ export interface TransactionInterface {
     assetID: string
   ): TransactionInterface;
   withFeeOutput(fee: number): TransactionInterface;
-  unlock(signer?: Signer): Promise<TransactionInterface>;
+  unlock(): Promise<TransactionInterface>;
 }
 
 export class Transaction implements TransactionInterface {
@@ -42,7 +43,7 @@ export class Transaction implements TransactionInterface {
   constructor(
     private artifactFunction: Function,
     private selector: number,
-    private parameters: Buffer[],
+    private args: (Buffer | Signer)[],
     private leaves: TaprootLeaf[],
     private parity: number,
     private fundingUtxo: Outpoint | undefined,
@@ -136,53 +137,49 @@ export class Transaction implements TransactionInterface {
     return this;
   }
 
-  async unlock(signer?: Signer): Promise<this> {
+  async unlock(): Promise<this> {
+   
     let witnessStack: Buffer[] = [];
+    
+    for (const arg of this.args) {
+      if (!isSigner(arg)) continue;
 
-    for (const { type } of this.artifactFunction.require) {
-      switch (type) {
-        case RequirementType.Signature:
-          if (!signer)
-            throw new Error(
-              'contract requires signature but no Signer was provided'
-            );
+      const signedPtxBase64 = await arg.signTransaction(
+        this.psbt.toBase64()
+      );
+      this.psbt= Psbt.fromBase64(signedPtxBase64);
 
-          const signedPtxBase64 = await signer.signTransaction(
-            this.psbt.toBase64()
-          );
-          this.psbt = Psbt.fromBase64(signedPtxBase64);
-
-          const { tapKeySig, tapScriptSig } = this.psbt.data.inputs[
-            this.fundingUtxoIndex
-          ];
-          if (tapScriptSig && tapScriptSig.length > 0) {
-            witnessStack = [
-              ...tapScriptSig.map(s => s.signature),
-              ...witnessStack,
-            ];
-          } else if (tapKeySig) {
-            witnessStack = [tapKeySig, ...witnessStack];
-          }
-          break;
-
-        case RequirementType.DataSignature:
-          if (
-            !this.artifactFunction.functionInputs.some(
-              p => p.type === PrimitiveType.DataSignature
-            )
-          )
-            throw new Error(
-              'contract requires data signature but no DataSignature was provided'
-            );
+      const { tapKeySig, tapScriptSig } = this.psbt.data.inputs[
+        this.fundingUtxoIndex
+      ];
+      if (tapScriptSig && tapScriptSig.length > 0) {
+        witnessStack = [
+          ...tapScriptSig.map(s => s.signature),
+          ...witnessStack,
+        ];
+      } else if (tapKeySig) {
+        witnessStack = [tapKeySig, ...witnessStack];
       }
     }
 
+    for (const { type } of this.artifactFunction.require) {
+      // do the checks on introspection 
+      console.debug(type);
+    }
+
+    const completedArgs = this.args.filter(a => !isSigner(a));
     this.psbt.finalizeInput(this.fundingUtxoIndex!, (_, input) => {
+      console.log(
+        ...witnessStack,
+        ...completedArgs as Buffer[], // TODO: check if this is correct
+        input.tapLeafScript![0].script,
+        input.tapLeafScript![0].controlBlock,
+      );
       return {
         finalScriptSig: undefined,
         finalScriptWitness: witnessStackToScriptWitness([
           ...witnessStack,
-          ...this.parameters, // TODO: check if this is correct
+          ...completedArgs as Buffer[], // TODO: check if this is correct
           input.tapLeafScript![0].script,
           input.tapLeafScript![0].controlBlock,
         ]),

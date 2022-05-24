@@ -53,7 +53,7 @@ export class Contract implements ContractInterface {
     const expectedProperties = [
       'contractName',
       'functions',
-      //'constructorInputs'
+      'constructorInputs'
     ];
     if (!expectedProperties.every(property => property in artifact)) {
       throw new Error('Invalid or incomplete artifact provided');

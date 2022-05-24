@@ -58,7 +58,6 @@ const numberToBytes = (value: number): Uint8Array => {
   return resizeBytes(uint8NumberBytes, byteLength);
 };
 
-
 export const numberToBuffer = (value: number, size: number = 8): Buffer => {
   const valueBytes = Buffer.from(numberToBytes(value));
   const valueLE = Buffer.from([
@@ -66,4 +65,4 @@ export const numberToBuffer = (value: number, size: number = 8): Buffer => {
     ...Buffer.alloc(Math.max(size - valueBytes.length, 0)),
   ]);
   return valueLE;
-}
+};

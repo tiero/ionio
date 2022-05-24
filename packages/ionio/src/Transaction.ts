@@ -138,32 +138,26 @@ export class Transaction implements TransactionInterface {
   }
 
   async unlock(): Promise<this> {
-   
     let witnessStack: Buffer[] = [];
-    
+
     for (const arg of this.args) {
       if (!isSigner(arg)) continue;
 
-      const signedPtxBase64 = await arg.signTransaction(
-        this.psbt.toBase64()
-      );
-      this.psbt= Psbt.fromBase64(signedPtxBase64);
+      const signedPtxBase64 = await arg.signTransaction(this.psbt.toBase64());
+      this.psbt = Psbt.fromBase64(signedPtxBase64);
 
       const { tapKeySig, tapScriptSig } = this.psbt.data.inputs[
         this.fundingUtxoIndex
       ];
       if (tapScriptSig && tapScriptSig.length > 0) {
-        witnessStack = [
-          ...tapScriptSig.map(s => s.signature),
-          ...witnessStack,
-        ];
+        witnessStack = [...tapScriptSig.map(s => s.signature), ...witnessStack];
       } else if (tapKeySig) {
         witnessStack = [tapKeySig, ...witnessStack];
       }
     }
 
     for (const { type } of this.artifactFunction.require) {
-      // do the checks on introspection 
+      // do the checks on introspection
       console.debug(type);
     }
 
@@ -171,15 +165,15 @@ export class Transaction implements TransactionInterface {
     this.psbt.finalizeInput(this.fundingUtxoIndex!, (_, input) => {
       console.log(
         ...witnessStack,
-        ...completedArgs as Buffer[], // TODO: check if this is correct
+        ...(completedArgs as Buffer[]), // TODO: check if this is correct
         input.tapLeafScript![0].script,
-        input.tapLeafScript![0].controlBlock,
+        input.tapLeafScript![0].controlBlock
       );
       return {
         finalScriptSig: undefined,
         finalScriptWitness: witnessStackToScriptWitness([
           ...witnessStack,
-          ...completedArgs as Buffer[], // TODO: check if this is correct
+          ...(completedArgs as Buffer[]), // TODO: check if this is correct
           input.tapLeafScript![0].script,
           input.tapLeafScript![0].controlBlock,
         ]),

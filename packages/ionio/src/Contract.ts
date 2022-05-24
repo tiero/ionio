@@ -51,8 +51,8 @@ export class Contract implements ContractInterface {
     private ecclib: TinySecp256k1Interface
   ) {
     const expectedProperties = [
-      'contractName', 
-      'functions', 
+      'contractName',
+      'functions',
       //'constructorInputs'
     ];
     if (!expectedProperties.every(property => property in artifact)) {
@@ -60,10 +60,12 @@ export class Contract implements ContractInterface {
     }
 
     if (artifact.constructorInputs.length !== constructorArgs.length) {
-      throw new Error(`Incorrect number of arguments passed to ${artifact.contractName} constructor`);
+      throw new Error(
+        `Incorrect number of arguments passed to ${artifact.contractName} constructor`
+      );
     }
 
-      // Encode arguments (this also performs type checking)
+    // Encode arguments (this also performs type checking)
     const encodedArgs = constructorArgs
       .map((arg, i) => encodeArgument(arg, artifact.constructorInputs[i].type))
       .reverse();
@@ -82,7 +84,11 @@ export class Contract implements ContractInterface {
       this.functions[f.name] = this.createFunction(f, i);
 
       // check for constructor inputs to replace template strings starting with $
-      const asm = templateToAsm(f.asm, this.artifact.constructorInputs, encodedArgs);
+      const asm = templateToAsm(
+        f.asm,
+        this.artifact.constructorInputs,
+        encodedArgs
+      );
 
       this.leaves.push({
         scriptHex: script.fromASM(asm.join(' ')).toString('hex'),

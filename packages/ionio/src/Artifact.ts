@@ -16,7 +16,6 @@ export enum PrimitiveType {
   XOnlyPublicKey = 'xonlypubkey',
 }
 
-
 export interface Requirement {
   type: RequirementType;
   value: Input | Output | ScriptPubKey | number | string | undefined;
@@ -43,8 +42,6 @@ export enum RequirementType {
   Older = 'older',
 }
 
-
-
 export enum SegwitVersion {
   LEGACY = -1,
   V0 = 0,
@@ -63,7 +60,6 @@ export interface Input {
   value: number;
   asset: string;
 }
-
 
 export interface Output {
   script: ScriptPubKey;

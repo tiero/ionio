@@ -1,11 +1,11 @@
 import axios from 'axios';
-const APIURL = process.env.APIURL || 'http://localhost:3001';
-import {ECPairInterface} from 'ecpair';
+import { ECPairInterface } from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
 import { tapLeafHash } from 'liquidjs-lib/src/bip341';
-import {Psbt, Transaction } from 'liquidjs-lib';
+import { Psbt, Transaction } from 'liquidjs-lib';
 import { Network } from 'liquidjs-lib/src/networks';
 import { Signer } from '../src/Signer';
+const APIURL = process.env.APIURL || 'http://localhost:3001';
 
 export function sleep(ms: number): Promise<any> {
   return new Promise((res: any): any => setTimeout(res, ms));
@@ -72,7 +72,6 @@ export async function mint(
   }
 }
 
-
 export async function fetchUtxos(
   address: string,
   txid?: string
@@ -114,8 +113,10 @@ export async function broadcast(
   }
 }
 
-
-export function getSignerWithECPair(keyPair: ECPairInterface, network: Network): Signer {
+export function getSignerWithECPair(
+  keyPair: ECPairInterface,
+  network: Network
+): Signer {
   return {
     signTransaction: async (base64: string): Promise<string> => {
       const ptx = Psbt.fromBase64(base64);
@@ -130,20 +131,25 @@ export function getSignerWithECPair(keyPair: ECPairInterface, network: Network):
         if (!script) continue;
 
         const leafHash = tapLeafHash({ scriptHex: script.toString('hex') });
-        
+
         // get the sig hash for each input
         const sighashForSig = ptx.TX.hashForWitnessV1(
           index,
-          ptx.data.inputs.map((u) => u.witnessUtxo!.script),
-          ptx.data.inputs.map((u) => ({ value: u.witnessUtxo!.value, asset: u.witnessUtxo!.asset })),
+          ptx.data.inputs.map(u => u.witnessUtxo!.script),
+          ptx.data.inputs.map(u => ({
+            value: u.witnessUtxo!.value,
+            asset: u.witnessUtxo!.asset,
+          })),
           Transaction.SIGHASH_DEFAULT,
           network.genesisBlockHash,
-          leafHash,
+          leafHash
         );
-        
+
         // sign it
         // notice third parameted MUST have Buffer.alloc(32)
-        const sig = Buffer.from(ecc.signSchnorr(sighashForSig, keyPair.privateKey!, Buffer.alloc(32)))
+        const sig = Buffer.from(
+          ecc.signSchnorr(sighashForSig, keyPair.privateKey!, Buffer.alloc(32))
+        );
 
         // attach signature in the taproot field
         ptx.updateInput(index, {
@@ -156,8 +162,8 @@ export function getSignerWithECPair(keyPair: ECPairInterface, network: Network):
           ],
         });
       }
-     
+
       return ptx.toBase64();
     },
-  }
+  };
 }

@@ -8,14 +8,12 @@ export function encodeArgument(
   value: Argument,
   typeStr: PrimitiveType
 ): Buffer | Signer {
-
   switch (typeStr) {
-
     case PrimitiveType.Bytes:
       if (!Buffer.isBuffer(value)) {
         throw new TypeError(typeof value, typeStr);
       }
-    return value;
+      return value;
 
     case PrimitiveType.Number:
       if (typeof value !== 'number') {
@@ -46,7 +44,7 @@ export function encodeArgument(
         throw new TypeError(typeof value, typeStr);
       }
       return script.number.encode(value ? 1 : 0);
-    
+
     case PrimitiveType.Asset:
       if (typeof value !== 'string') {
         throw new TypeError(typeof value, typeStr);

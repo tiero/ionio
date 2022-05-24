@@ -24,11 +24,11 @@ describe('SyntheticAsset', () => {
     // eslint-disable-next-line global-require
     // mint synth
     const { asset } = await mint(borrower.address!, 0.05);
-    
+
     // instantiate Contract
     const artifact = require('../fixtures/synthetic_asset.json');
     contract = new Contract(
-      artifact, 
+      artifact,
       [
         issuer.pubkey!.slice(1),
         borrower.pubkey!.slice(1),
@@ -38,12 +38,12 @@ describe('SyntheticAsset', () => {
         network.assetHash,
         // borrow amount
         //amounts are 8 bytes
-        numberToBuffer(500000, 8), 
+        numberToBuffer(500000, 8),
         // payout on redeem amount for issuer
         //amounts are 8 bytes
-        numberToBuffer(100, 8) 
-      ], 
-      network, 
+        numberToBuffer(100, 8),
+      ],
+      network,
       ecc
     );
     const response = await faucetComplex(contract.address, 0.0001);

@@ -5,7 +5,6 @@ import { payments, TxOutput } from 'liquidjs-lib';
 import { broadcast, faucetComplex, getSignerWithECPair } from '../utils';
 import { Signer } from '../../src/Signer';
 
-
 describe('TransferWithKey', () => {
   let contract: Contract;
   let prevout: TxOutput;
@@ -15,7 +14,12 @@ describe('TransferWithKey', () => {
   beforeAll(async () => {
     // eslint-disable-next-line global-require
     const artifact = require('../fixtures/transfer_with_key.json');
-    contract = new Contract(artifact, [alicePk.publicKey.slice(1)], network, ecc);
+    contract = new Contract(
+      artifact,
+      [alicePk.publicKey.slice(1)],
+      network,
+      ecc
+    );
     const response = await faucetComplex(contract.address, 0.0001);
 
     prevout = response.prevout;

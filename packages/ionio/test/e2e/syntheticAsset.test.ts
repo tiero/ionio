@@ -1,16 +1,25 @@
-import { Contract, numberToBuffer, Signer } from '../../src';
+import { Contract, Signer, Value } from '../../src';
 import * as ecc from 'tiny-secp256k1';
 import { alicePk, network } from '../fixtures/vars';
 import { payments, Psbt, TxOutput } from 'liquidjs-lib';
-import { broadcast, faucetComplex, mint } from '../utils';
+import { broadcast, faucetComplex, mintComplex } from '../utils';
 
 describe('SyntheticAsset', () => {
   const issuer = payments.p2wpkh({ pubkey: alicePk.publicKey, network })!;
   const borrower = payments.p2wpkh({ pubkey: alicePk.publicKey, network })!;
 
   let contract: Contract;
-  let prevout: TxOutput;
-  let utxo: { txid: string; vout: number; value: number; asset: string };
+  let covenantPrevout: TxOutput;
+  let borrowPrevout: TxOutput;
+  let covenantUtxo: {
+    txid: string;
+    vout: number;
+    value: number;
+    asset: string;
+  };
+  let borrowUtxo: { txid: string; vout: number; value: number; asset: string };
+  const borrowAmount = 500000;
+  const payout = 500;
 
   const signer: Signer = {
     signTransaction: async (base64: string): Promise<string> => {
@@ -22,48 +31,77 @@ describe('SyntheticAsset', () => {
 
   beforeAll(async () => {
     // eslint-disable-next-line global-require
-    // mint synth
-    const { asset } = await mint(borrower.address!, 0.05);
 
-    // instantiate Contract
-    const artifact = require('../fixtures/synthetic_asset.json');
-    contract = new Contract(
-      artifact,
-      [
-        issuer.pubkey!.slice(1),
-        borrower.pubkey!.slice(1),
-        // borrow asset
-        asset,
-        // collateral asset
-        network.assetHash,
-        // borrow amount
-        //amounts are 8 bytes
-        numberToBuffer(500000, 8),
-        // payout on redeem amount for issuer
-        //amounts are 8 bytes
-        numberToBuffer(100, 8),
-      ],
-      network,
-      ecc
-    );
-    const response = await faucetComplex(contract.address, 0.0001);
+    // mint synthetic asset
+    // NOTICE: this should happen as atomic swap, now we are simulating it
+    // giving the borrower the asset before having him to lock collateral
+    try {
+      const mintResponse = await mintComplex(
+        borrower.address!,
+        borrowAmount / 10 ** 8
+      );
+      borrowUtxo = mintResponse.utxo;
+      borrowPrevout = mintResponse.prevout;
 
-    prevout = response.prevout;
-    utxo = response.utxo;
+      // instantiate Contract
+      const artifact = require('../fixtures/synthetic_asset.json');
+      contract = new Contract(
+        artifact,
+        [
+          // borrow asset
+          borrowUtxo.asset,
+          // collateral asset
+          network.assetHash,
+          // borrow amount
+          Value.fromSatoshis(borrowAmount).bytes,
+          // payout on redeem amount for issuer
+          Value.fromSatoshis(payout).bytes,
+          borrower.pubkey!.slice(1),
+          issuer.pubkey!.slice(1),
+          issuer.output!,
+        ],
+        network,
+        ecc
+      );
+
+      // fund our contract
+      const faucetResponse = await faucetComplex(contract.address, 0.0001);
+      covenantPrevout = faucetResponse.prevout;
+      covenantUtxo = faucetResponse.utxo;
+    } catch (e) {
+      console.error(e);
+    }
   });
 
   describe('redeem', () => {
     it('should redeem with burnt output', async () => {
-      const to = payments.p2wpkh({ pubkey: alicePk.publicKey }).address!;
-      const amount = 9900;
       const feeAmount = 100;
 
       // lets instantiare the contract using the funding transacton
-      const instance = contract.attach(utxo.txid, utxo.vout, prevout);
+      const instance = contract.attach(
+        covenantUtxo.txid,
+        covenantUtxo.vout,
+        covenantPrevout
+      );
 
       const tx = instance.functions
         .redeem(signer)
-        .withRecipient(to, amount, network.assetHash)
+        // spend an asset
+        .withUtxo({
+          txid: borrowUtxo.txid,
+          vout: borrowUtxo.vout,
+          prevout: borrowPrevout,
+        })
+        // burn asset
+        .withOpReturn([], borrowUtxo.value, borrowUtxo.asset)
+        // payout to issuer
+        .withRecipient(issuer.address!, payout, network.assetHash)
+        // collateral
+        .withRecipient(
+          borrower.address!,
+          covenantUtxo.value - payout - feeAmount,
+          network.assetHash
+        )
         .withFeeOutput(feeAmount);
 
       const signedTx = await tx.unlock();

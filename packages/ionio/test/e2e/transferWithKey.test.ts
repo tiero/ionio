@@ -4,6 +4,7 @@ import { alicePk, network } from '../fixtures/vars';
 import { payments, TxOutput } from 'liquidjs-lib';
 import { broadcast, faucetComplex, getSignerWithECPair } from '../utils';
 import { Signer } from '../../src/Signer';
+import { Artifact } from '../../src/Artifact';
 
 describe('TransferWithKey', () => {
   let contract: Contract;
@@ -13,7 +14,7 @@ describe('TransferWithKey', () => {
 
   beforeAll(async () => {
     // eslint-disable-next-line global-require
-    const artifact = require('../fixtures/transfer_with_key.json');
+    const artifact: Artifact = require('../fixtures/transfer_with_key.json');
     contract = new Contract(
       artifact,
       [alicePk.publicKey.slice(1)],
@@ -44,6 +45,7 @@ describe('TransferWithKey', () => {
       const hex = signedTx.psbt.extractTransaction().toHex();
       const txid = await broadcast(hex);
       expect(txid).toBeDefined();
+      console.log(txid);
     });
   });
 });

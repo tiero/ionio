@@ -2,14 +2,6 @@
   "contractName": "SyntheticAsset",
   "constructorInputs": [
     {
-      "name": "issuerPk",
-      "type": "xonlypubkey"
-    },
-    {
-      "name": "borrowePk",
-      "type": "xonlypubkey"
-    },
-    {
       "name": "borrowAsset",
       "type": "asset"
     },
@@ -24,26 +16,36 @@
     {
       "name": "payoutAmount",
       "type": "bytes"
+    },
+    {
+      "name": "borrowePk",
+      "type": "xonlypubkey"
+    },
+    {
+      "name": "issuerPk",
+      "type": "xonlypubkey"
+    },
+    {
+      "name": "issuerScript",
+      "type": "bytes"
     }
+
   ],
   "functions": [
     {
       "name": "redeem",
       "functionInputs": [
         {
-          "name": "borrowSignature",
+          "name": "borrowerSig",
           "type": "sig"
         }
       ],
       "require": [
         {
           "type": "output",
-          "covenantIndex": 0,
-          "value": {
-            "script" : {
-              "version": -1,
-              "program": "0x6a"
-            },
+          "atIndex": 0,
+          "expected": {
+            "script" : "0x6a",
             "value": "$borrowAmount",
             "asset": "$borrowAsset",
             "nonce": ""
@@ -51,20 +53,13 @@
         },
         {
           "type": "output",
-          "covenantIndex": 1,
-          "value": {
-            "script" : {
-              "version": 1,
-              "program": "$issuerPk"
-            },
+          "atIndex": 1,
+          "expected": {
+            "script" : "$issuerScript",
             "value": "$payoutAmount",
             "asset": "$collateralAsset",
             "nonce": ""
           }
-        },
-        {
-          "type": "sig",
-          "value": "$borrowePk"
         }
       ],
       "asm":[

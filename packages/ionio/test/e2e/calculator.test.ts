@@ -12,7 +12,7 @@ describe('Calculator', () => {
   beforeAll(async () => {
     // eslint-disable-next-line global-require
     const artifact = require('../fixtures/calculator.json');
-    contract = new Contract(artifact, network, ecc);
+    contract = new Contract(artifact, [3], network, ecc);
     const response = await faucetComplex(contract.address, 0.0001);
 
     prevout = response.prevout;
@@ -20,7 +20,7 @@ describe('Calculator', () => {
   });
 
   describe('sumMustBeThree', () => {
-    it('should succeed when the sum of foo and bar is correct', async () => {
+    it('should succeed when the sum of a and b is correct', async () => {
       //const myself = payments.p2wpkh({ pubkey: alice.publicKey }).address!;
       const to = payments.p2wpkh({ pubkey: bob.publicKey }).address!;
       const amount = 9900;

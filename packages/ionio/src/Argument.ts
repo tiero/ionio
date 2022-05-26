@@ -2,7 +2,7 @@ import { script } from 'liquidjs-lib';
 import { PrimitiveType } from './Artifact';
 import { isSigner, Signer } from './Signer';
 
-export type Argument = number | boolean | string | Buffer | Uint8Array | Signer;
+export type Argument = number | boolean | string | Buffer | Signer;
 
 export function encodeArgument(
   value: Argument,
@@ -66,7 +66,6 @@ export function encodeArgument(
       return value;
 
     default:
-      console.error('Unsupported type', typeStr);
       throw new Error(`Unsupported type ${typeStr}`);
   }
 }

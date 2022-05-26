@@ -13,7 +13,8 @@ import { address, script, TxOutput } from 'liquidjs-lib';
 import { H_POINT } from './constants';
 import { Outpoint } from './interfaces';
 import { tweakPublicKey } from './utils/taproot';
-import { templateToAsm } from './utils/asm';
+import { replaceTemplateWithConstructorArg } from './utils/template';
+import { isSigner } from './Signer';
 
 export interface ContractInterface {
   name: string;
@@ -46,14 +47,14 @@ export class Contract implements ContractInterface {
 
   constructor(
     private artifact: Artifact,
-    constructorArgs: Argument[],
+    private constructorArgs: Argument[],
     private network: Network,
     private ecclib: TinySecp256k1Interface
   ) {
     const expectedProperties = [
       'contractName',
       'functions',
-      'constructorInputs'
+      'constructorInputs',
     ];
     if (!expectedProperties.every(property => property in artifact)) {
       throw new Error('Invalid or incomplete artifact provided');
@@ -65,10 +66,10 @@ export class Contract implements ContractInterface {
       );
     }
 
-    // Encode arguments (this also performs type checking)
-    const encodedArgs = constructorArgs
-      .map((arg, i) => encodeArgument(arg, artifact.constructorInputs[i].type))
-      .reverse();
+    // Encode arguments (this performs type checking)
+    constructorArgs.forEach((arg, i) =>
+      encodeArgument(arg, artifact.constructorInputs[i].type)
+    );
 
     this.leaves = [];
     this.functions = {};
@@ -83,12 +84,15 @@ export class Contract implements ContractInterface {
       }
       this.functions[f.name] = this.createFunction(f, i);
 
-      // check for constructor inputs to replace template strings starting with $
-      const asm = templateToAsm(
-        f.asm,
-        this.artifact.constructorInputs,
-        encodedArgs
+      // check for constructor inputs to replace template strings starting with $ or strip 0x from hex encoded strings
+      const asm = f.asm.map(op =>
+        replaceTemplateWithConstructorArg(
+          op,
+          artifact.constructorInputs,
+          constructorArgs
+        )
       );
+      console.log(asm);
 
       this.leaves.push({
         scriptHex: script.fromASM(asm.join(' ')).toString('hex'),
@@ -136,25 +140,30 @@ export class Contract implements ContractInterface {
     artifactFunction: Function,
     selector: number
   ): ContractFunction {
-    return (...args: Argument[]) => {
-      if (artifactFunction.functionInputs.length !== args.length) {
+    return (...functionArgs: Argument[]) => {
+      if (artifactFunction.functionInputs.length !== functionArgs.length) {
         throw new Error(
           `Incorrect number of arguments passed to function ${artifactFunction.name}`
         );
       }
 
       // Encode passed args (this also performs type checking)
-      const encodedArgs = args.map((arg, i) =>
-        encodeArgument(arg, artifactFunction.functionInputs[i].type)
-      );
+      functionArgs.forEach((arg, index) => {
+        if (isSigner(arg)) return;
+        return encodeArgument(arg, artifactFunction.functionInputs[index].type);
+      });
 
       return new Transaction(
+        this.artifact.constructorInputs,
+        this.constructorArgs,
         artifactFunction,
+        functionArgs,
         selector,
-        encodedArgs,
-        this.leaves,
-        this.parity,
         this.fundingOutpoint,
+        {
+          leaves: this.leaves,
+          parity: this.parity,
+        },
         this.network
       );
     };

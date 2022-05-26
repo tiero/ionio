@@ -9,12 +9,13 @@
   "functions": [
     {
       "name": "transfer",
-      "functionInputs": [],
-      "require": [
+      "functionInputs": [
         {
+          "name": "ownerSignature",
           "type": "sig"
         }
       ],
+      "require": [],
       "asm": [
         "$pubKey",
         "OP_CHECKSIG"

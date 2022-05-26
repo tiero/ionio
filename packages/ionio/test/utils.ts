@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ECPairInterface } from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
 import { tapLeafHash } from 'liquidjs-lib/src/bip341';
-import { Psbt, Transaction } from 'liquidjs-lib';
+import { Psbt, Transaction, TxOutput } from 'liquidjs-lib';
 import { Network } from 'liquidjs-lib/src/networks';
 import { Signer } from '../src/Signer';
 const APIURL = process.env.APIURL || 'http://localhost:3001';
@@ -11,9 +11,32 @@ export function sleep(ms: number): Promise<any> {
   return new Promise((res: any): any => setTimeout(res, ms));
 }
 
-export async function faucetComplex(address: string, amountFractional: number) {
+export async function faucetComplex(
+  address: string,
+  amountFractional: number
+): Promise<{
+  utxo: { value: number; asset: string; txid: string; vout: number };
+  prevout: TxOutput;
+}> {
   const utxo = await faucet(address, amountFractional);
   const txhex = await fetchTx(utxo.txid);
+  const prevout = Transaction.fromHex(txhex).outs[utxo.vout];
+  return {
+    utxo,
+    prevout,
+  };
+}
+
+export async function mintComplex(
+  address: string,
+  amountFractional: number
+): Promise<{
+  utxo: { value: number; asset: string; txid: string; vout: number };
+  prevout: TxOutput;
+}> {
+  const utxo = await mint(address, amountFractional);
+  const txhex = await fetchTx(utxo.txid);
+
   const prevout = Transaction.fromHex(txhex).outs[utxo.vout];
   return {
     utxo,
@@ -29,11 +52,10 @@ export async function faucet(address: string, amount: number): Promise<any> {
     }
     const { txId } = resp.data;
 
-    sleep(1000);
     let rr = { data: [] };
     const filter = (): any => rr.data.filter((x: any) => x.txid === txId);
     while (!rr.data.length || !filter().length) {
-      sleep(1000);
+      sleep(100);
       rr = await axios.get(`${APIURL}/address/${address}/utxo`);
     }
 
@@ -44,10 +66,7 @@ export async function faucet(address: string, amount: number): Promise<any> {
   }
 }
 
-export async function mint(
-  address: string,
-  quantity: number
-): Promise<{ asset: string; txid: string }> {
+export async function mint(address: string, quantity: number): Promise<any> {
   try {
     const { status, data } = await axios.post(`${APIURL}/mint`, {
       address,
@@ -58,11 +77,11 @@ export async function mint(
     }
 
     while (true) {
-      sleep(1000);
+      sleep(100);
       try {
         const utxos = await fetchUtxos(address, data.txId);
         if (utxos.length > 0) {
-          return data;
+          return utxos[0];
         }
       } catch (ignore) {}
     }

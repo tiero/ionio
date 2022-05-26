@@ -18,8 +18,8 @@ export enum PrimitiveType {
 
 export interface Requirement {
   type: RequirementType;
-  value: Input | Output | ScriptPubKey | number | string | undefined;
-  covenantIndex?: number; // for input* or output* requirements only
+  expected: Input | Output | number | string | undefined;
+  atIndex?: number; // for input* or output* requirements only
 }
 
 export enum RequirementType {
@@ -42,17 +42,6 @@ export enum RequirementType {
   Older = 'older',
 }
 
-export enum SegwitVersion {
-  LEGACY = -1,
-  V0 = 0,
-  V1 = 1,
-}
-
-export type ScriptPubKey = {
-  version: SegwitVersion;
-  program: string;
-};
-
 export interface Input {
   hash: string;
   index: number;
@@ -62,8 +51,8 @@ export interface Input {
 }
 
 export interface Output {
-  script: ScriptPubKey;
-  value: number;
+  script: string;
+  value: string;
   asset: string;
   nonce: string;
 }

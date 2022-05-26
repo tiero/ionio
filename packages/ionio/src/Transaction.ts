@@ -13,10 +13,12 @@ import {
   toHashTree,
 } from 'liquidjs-lib/src/bip341';
 import { Network } from 'liquidjs-lib/src/networks';
-import { Function } from './Artifact';
+import { Argument, encodeArgument } from './Argument';
+import { Function, Output, Parameter } from './Artifact';
 import { H_POINT, LEAF_VERSION_TAPSCRIPT } from './constants';
 import { Outpoint } from './interfaces';
-import { isSigner, Signer } from './Signer';
+import { isSigner } from './Signer';
+import { replaceTemplateWithConstructorArg } from './utils/template';
 
 export interface TransactionInterface {
   psbt: Psbt;
@@ -35,29 +37,35 @@ export interface TransactionInterface {
   unlock(): Promise<TransactionInterface>;
 }
 
+export interface TaprootData {
+  leaves: TaprootLeaf[];
+  parity: number;
+}
+
 export class Transaction implements TransactionInterface {
   public psbt: Psbt;
 
   private fundingUtxoIndex: number = 0;
 
   constructor(
+    private constructorInputs: Parameter[],
+    private constructorArgs: Argument[],
     private artifactFunction: Function,
+    private functionArgs: Argument[],
     private selector: number,
-    private args: (Buffer | Signer)[],
-    private leaves: TaprootLeaf[],
-    private parity: number,
     private fundingUtxo: Outpoint | undefined,
+    private taprootData: TaprootData,
     private network: Network
   ) {
     this.psbt = new Psbt({ network: this.network });
     if (this.fundingUtxo) {
-      const leafToSpend = this.leaves[this.selector];
+      const leafToSpend = this.taprootData.leaves[this.selector];
       const leafVersion = leafToSpend.version || LEAF_VERSION_TAPSCRIPT;
       const leafHash = tapLeafHash(leafToSpend);
-      const hashTree = toHashTree(this.leaves);
+      const hashTree = toHashTree(this.taprootData.leaves);
       const path = findScriptPath(hashTree, leafHash);
 
-      const parityBit = Buffer.of(leafVersion + this.parity);
+      const parityBit = Buffer.of(leafVersion + this.taprootData.parity);
 
       const controlBlock = Buffer.concat([
         parityBit,
@@ -140,7 +148,8 @@ export class Transaction implements TransactionInterface {
   async unlock(): Promise<this> {
     let witnessStack: Buffer[] = [];
 
-    for (const arg of this.args) {
+    // check for signature to be made
+    for (const arg of this.functionArgs) {
       if (!isSigner(arg)) continue;
 
       const signedPtxBase64 = await arg.signTransaction(this.psbt.toBase64());
@@ -156,29 +165,104 @@ export class Transaction implements TransactionInterface {
       }
     }
 
-    for (const { type } of this.artifactFunction.require) {
-      // do the checks on introspection
-      console.debug(type);
+    for (const { type, atIndex, expected } of this.artifactFunction.require) {
+      // do the checks on introspection)
+      switch (type) {
+        case 'input':
+          if (atIndex === undefined)
+            throw new Error(
+              `atIndex field is required for requirement of type ${type}`
+            );
+          if (atIndex >= this.psbt.data.inputs.length)
+            throw new Error(`${type} is required at index ${atIndex}`);
+          break;
+        case 'output':
+          if (atIndex === undefined)
+            throw new Error(
+              `atIndex field is required for requirement of type ${type}`
+            );
+          if (atIndex >= this.psbt.data.outputs.length)
+            throw new Error(`${type} is required at index ${atIndex}`);
+          if (!expected)
+            throw new Error(
+              `expected field of type ${type} is required at index ${atIndex}`
+            );
+          const expectedProperties = ['script', 'value', 'asset', 'nonce'];
+          if (
+            !expectedProperties.every(
+              property => property in (expected as Output)
+            )
+          ) {
+            throw new Error('Invalid or incomplete artifact provided');
+          }
+          const outputAtIndex = this.psbt.TX.outs[atIndex];
+          // check the script
+          const { script, value } = expected as Output;
+          const scriptBuffer = Buffer.from(
+            replaceTemplateWithConstructorArg(
+              script,
+              this.constructorInputs,
+              this.constructorArgs
+            ),
+            'hex'
+          );
+          if (!scriptBuffer.equals(outputAtIndex.script))
+            throw new Error(
+              `required ${type} script does not match the transaction ${type} index ${atIndex}`
+            );
+          // check the value
+          const valueBuffer = Buffer.from(
+            replaceTemplateWithConstructorArg(
+              value,
+              this.constructorInputs,
+              this.constructorArgs
+            ),
+            'hex'
+          );
+          if (!valueBuffer.equals(outputAtIndex.value)) {
+            console.log(expected, this.constructorInputs, this.constructorArgs);
+            console.log(
+              valueBuffer.toString('hex'),
+              outputAtIndex.value.toString('hex')
+            );
+            throw new Error(
+              `required ${type} value does not match the transaction ${type} index ${atIndex}`
+            );
+          }
+          break;
+        case 'after':
+        case 'older':
+        default:
+          break;
+      }
     }
 
-    const completedArgs = this.args.filter(a => !isSigner(a));
+    const encodedArgs = this.functionArgs
+      .filter(arg => !isSigner(arg))
+      .map((arg, index) => {
+        // Encode passed args (this also performs type checking)
+        return encodeArgument(
+          arg,
+          this.artifactFunction.functionInputs[index].type
+        );
+      });
+
     this.psbt.finalizeInput(this.fundingUtxoIndex!, (_, input) => {
-      console.log(
-        ...witnessStack,
-        ...(completedArgs as Buffer[]), // TODO: check if this is correct
-        input.tapLeafScript![0].script,
-        input.tapLeafScript![0].controlBlock
-      );
       return {
         finalScriptSig: undefined,
         finalScriptWitness: witnessStackToScriptWitness([
           ...witnessStack,
-          ...(completedArgs as Buffer[]), // TODO: check if this is correct
+          ...(encodedArgs as Buffer[]),
           input.tapLeafScript![0].script,
           input.tapLeafScript![0].controlBlock,
         ]),
       };
     });
+    this.psbt.finalizeAllInputs();
+    console.log(
+      this.fundingUtxoIndex,
+      this.psbt.data.inputs[this.fundingUtxoIndex]
+    );
     return this;
   }
 }

@@ -12,11 +12,13 @@ The `Contract` class is used to represent a Ionio contract in a JavaScript objec
 ```ts
 new Contract(
   artifact: Artifact,
+  constructorInputs :Argument[]
   network: Network
+  eccLib: TinySecp256k1Interface
 )
 ```
 
-A Ionio contract can be instantiated by providing an `Artifact` object, a `Network` and a `TinySecp256k1Interface`.
+A Ionio contract can be instantiated by providing an `Artifact` object, the list of hardcoded arguments `Argument[]`, a `Network` and a `TinySecp256k1Interface`.
 
 An `Artifact` object is the result of compiling a Ionio contract with Ionio compiler. Compilation ~~can~~ will be done using the standalone `ionioc` CLI or programmatically with the `ionioc` NPM package.
 
@@ -29,23 +31,29 @@ import * as ecc from 'tiny-secp256k1';
 
 const artifact = {
   "contractName": "Calculator",
+  "constructorInputs": [
+    {
+      "name": "sum",
+      "type": "number"
+    }
+  ],
   "functions": [
     {
       "name": "sumMustBeThree",
       "functionInputs": [
         {
-          "name": "foo",
-          "type": "Number"
+          "name": "a",
+          "type": "number"
         },
         {
-          "name": "bar",
-          "type": "Number"
+          "name": "b",
+          "type": "number"
         }
       ],
       "require": [],
       "asm": [
         "OP_ADD",
-        3,
+        "$sum",
         "OP_EQUAL"
       ]
     }
@@ -53,7 +61,7 @@ const artifact = {
 };
 
 
-const contract = new Contract(artifact, networks.testnet, ecc);
+const contract = new Contract(artifact, [3], networks.regtest, ecc);
 ```
 
 ### address
@@ -91,23 +99,24 @@ These contract functions return an incomplete `Transaction` object, which needs 
 
 #### Example
 ```ts
+import * as ecc from 'tiny-secp256k1';
 import { Contract, networks } from '@ionio-lang/ionio';
-import { artifact, myself, to, amount, utxo, prevout } from './somewhere';
+import { artifact, myself, to, amount, fundingUtxo, prevout } from './somewhere';
 
 const feeAmount = 100;
 
-const contract = new Contract(artifact, networks.testnet);
+const contract = new Contract(artifact, [3], networks.regtest, ecc);
 
 // attach to the funded contract using the utxo
-const instance = contract.attach(
-  utxo.txid, 
-  utxo.vout, 
-  utxo.prevout
+const instance = contract.from(
+  fundingUtxo.txid, 
+  fundingUtxo.vout, 
+  fundingUtxo.prevout
 );
 
 const tx = instance.functions
   .sumMustBeThree(1, 2)
-  .withRecipient(to, amount, network.assetHash)
+  .withRecipient(to, amount, networks.regtest)
   .withRecipient(
     myself, 
     utxo.value - amount - feeAmount, 

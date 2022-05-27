@@ -34,7 +34,7 @@ describe('TransferWithKey', () => {
       const feeAmount = 100;
 
       // lets instantiare the contract using the funding transacton
-      const instance = contract.attach(utxo.txid, utxo.vout, prevout);
+      const instance = contract.from(utxo.txid, utxo.vout, prevout);
 
       const tx = instance.functions
         .transfer(signer)
@@ -45,7 +45,6 @@ describe('TransferWithKey', () => {
       const hex = signedTx.psbt.extractTransaction().toHex();
       const txid = await broadcast(hex);
       expect(txid).toBeDefined();
-      console.log(txid);
     });
   });
 });

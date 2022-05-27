@@ -16,22 +16,22 @@ import { Network } from 'liquidjs-lib/src/networks';
 import { Argument, encodeArgument } from './Argument';
 import { Function, Output, Parameter } from './Artifact';
 import { H_POINT, LEAF_VERSION_TAPSCRIPT } from './constants';
-import { Outpoint } from './interfaces';
+import { Utxo } from './interfaces';
 import { isSigner } from './Signer';
 import { replaceTemplateWithConstructorArg } from './utils/template';
 
 export interface TransactionInterface {
   psbt: Psbt;
-  withUtxo(outpoint: Outpoint): TransactionInterface;
+  withUtxo(outpoint: Utxo): TransactionInterface;
   withRecipient(
     addressOrScript: string | Buffer,
     amount: number,
     assetID: string
   ): TransactionInterface;
   withOpReturn(
-    hexChunks: string[],
     value: number,
-    assetID: string
+    assetID: string,
+    hexChunks: string[]
   ): TransactionInterface;
   withFeeOutput(fee: number): TransactionInterface;
   unlock(): Promise<TransactionInterface>;
@@ -53,7 +53,7 @@ export class Transaction implements TransactionInterface {
     private artifactFunction: Function,
     private functionArgs: Argument[],
     private selector: number,
-    private fundingUtxo: Outpoint | undefined,
+    private fundingUtxo: Utxo | undefined,
     private taprootData: TaprootData,
     private network: Network
   ) {
@@ -89,7 +89,7 @@ export class Transaction implements TransactionInterface {
     }
   }
 
-  withUtxo(outpoint: Outpoint): this {
+  withUtxo(outpoint: Utxo): this {
     this.psbt.addInput({
       hash: outpoint.txid,
       index: outpoint.vout,
@@ -119,9 +119,9 @@ export class Transaction implements TransactionInterface {
   }
 
   withOpReturn(
-    hexChunks: string[],
     value: number = 0,
-    assetID: string = this.network.assetHash
+    assetID: string = this.network.assetHash,
+    hexChunks: string[] = []
   ): this {
     this.psbt.addOutput({
       script: script.compile([
@@ -153,7 +153,8 @@ export class Transaction implements TransactionInterface {
       if (!isSigner(arg)) continue;
 
       const signedPtxBase64 = await arg.signTransaction(this.psbt.toBase64());
-      this.psbt = Psbt.fromBase64(signedPtxBase64);
+      const signedPtx = Psbt.fromBase64(signedPtxBase64);
+      this.psbt = signedPtx;
 
       const { tapKeySig, tapScriptSig } = this.psbt.data.inputs[
         this.fundingUtxoIndex
@@ -206,7 +207,12 @@ export class Transaction implements TransactionInterface {
             ),
             'hex'
           );
-          if (!scriptBuffer.equals(outputAtIndex.script))
+          const slicedOutputScript = outputAtIndex.script
+            .toString('hex')
+            .startsWith('6a')
+            ? outputAtIndex.script
+            : outputAtIndex.script.slice(2);
+          if (!scriptBuffer.equals(slicedOutputScript))
             throw new Error(
               `required ${type} script does not match the transaction ${type} index ${atIndex}`
             );
@@ -219,16 +225,12 @@ export class Transaction implements TransactionInterface {
             ),
             'hex'
           );
-          if (!valueBuffer.equals(outputAtIndex.value)) {
-            console.log(expected, this.constructorInputs, this.constructorArgs);
-            console.log(
-              valueBuffer.toString('hex'),
-              outputAtIndex.value.toString('hex')
-            );
+          const outputValue = Buffer.from(outputAtIndex.value);
+          const reversedOutputValue = outputValue.slice(1).reverse();
+          if (!valueBuffer.equals(reversedOutputValue))
             throw new Error(
               `required ${type} value does not match the transaction ${type} index ${atIndex}`
             );
-          }
           break;
         case 'after':
         case 'older':
@@ -258,11 +260,6 @@ export class Transaction implements TransactionInterface {
         ]),
       };
     });
-    this.psbt.finalizeAllInputs();
-    console.log(
-      this.fundingUtxoIndex,
-      this.psbt.data.inputs[this.fundingUtxoIndex]
-    );
     return this;
   }
 }

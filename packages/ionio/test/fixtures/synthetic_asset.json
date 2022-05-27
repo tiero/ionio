@@ -11,11 +11,11 @@
     },
     {
       "name": "borrowAmount",
-      "type": "bytes"
+      "type": "value"
     },
     {
       "name": "payoutAmount",
-      "type": "bytes"
+      "type": "value"
     },
     {
       "name": "borrowePk",
@@ -107,9 +107,9 @@
 
         "OP_1",
         "OP_INSPECTOUTPUTSCRIPTPUBKEY",
-        "OP_1",
+        "OP_0",
         "OP_EQUALVERIFY",
-        "$issuerPk",
+        "$issuerScript",
         "OP_EQUALVERIFY",
 
         "OP_1",

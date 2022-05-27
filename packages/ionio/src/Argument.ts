@@ -1,6 +1,7 @@
 import { script } from 'liquidjs-lib';
-import { PrimitiveType } from './Artifact';
+import { PrimitiveType } from './interfaces';
 import { isSigner, Signer } from './Signer';
+import { Value } from './utils/value';
 
 export type Argument = number | boolean | string | Buffer | Signer;
 
@@ -26,7 +27,7 @@ export function encodeArgument(
         throw new TypeError(typeof value, typeStr);
       }
       if (value.length !== 32) {
-        throw new Error('Invalid x-ony public key length');
+        throw new Error('Invalid x-only public key length');
       }
       return value;
 
@@ -49,9 +50,17 @@ export function encodeArgument(
       if (typeof value !== 'string') {
         throw new TypeError(typeof value, typeStr);
       }
-      const assetID = Buffer.from(value, 'hex');
-      const reversedAssetBuffer = assetID.reverse() as Buffer;
+      const assetBuffer = Buffer.from(value, 'hex');
+      const reversedAssetBuffer = assetBuffer.reverse() as Buffer;
       return reversedAssetBuffer;
+
+    case PrimitiveType.Value:
+      if (typeof value !== 'number') {
+        throw new TypeError(typeof value, typeStr);
+      }
+      const valueBuffer = Value.fromSatoshis(value).bytes;
+      const reversedValueBuffer = valueBuffer.slice(1).reverse() as Buffer;
+      return reversedValueBuffer;
 
     case PrimitiveType.Signature:
       if (!isSigner(value)) {

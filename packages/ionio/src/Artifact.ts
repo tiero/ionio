@@ -1,19 +1,9 @@
 import fs from 'fs';
+import { PrimitiveType } from './interfaces';
 
 export interface Parameter {
   name: string;
   type: PrimitiveType;
-}
-
-export enum PrimitiveType {
-  Number = 'number',
-  Bytes = 'bytes',
-  Boolean = 'bool',
-  Asset = 'asset',
-  Signature = 'sig',
-  DataSignature = 'datasig',
-  PublicKey = 'pubkey',
-  XOnlyPublicKey = 'xonlypubkey',
 }
 
 export interface Requirement {

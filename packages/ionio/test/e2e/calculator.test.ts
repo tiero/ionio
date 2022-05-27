@@ -26,8 +26,8 @@ describe('Calculator', () => {
       const amount = 9900;
       const feeAmount = 100;
 
-      // lets instantiare the contract using the funding transacton
-      const instance = contract.attach(utxo.txid, utxo.vout, prevout);
+      // lets instantiate the contract using the funding transacton
+      const instance = contract.from(utxo.txid, utxo.vout, prevout);
 
       const tx = instance.functions
         .sumMustBeThree(1, 2)

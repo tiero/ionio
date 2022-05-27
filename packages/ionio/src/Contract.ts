@@ -11,7 +11,7 @@ import {
 } from 'liquidjs-lib/src/bip341';
 import { address, script, TxOutput } from 'liquidjs-lib';
 import { H_POINT } from './constants';
-import { Outpoint } from './interfaces';
+import { Utxo } from './interfaces';
 import { tweakPublicKey } from './utils/taproot';
 import { replaceTemplateWithConstructorArg } from './utils/template';
 import { isSigner } from './Signer';
@@ -19,21 +19,21 @@ import { isSigner } from './Signer';
 export interface ContractInterface {
   name: string;
   address: string;
-  fundingOutpoint: Outpoint | undefined;
+  fundingUtxo: Utxo | undefined;
   bytesize: number;
   functions: {
     [name: string]: ContractFunction;
   };
   leaves: { scriptHex: string }[];
   scriptPubKey: Buffer;
-  attach(txid: string, vout: number, prevout: TxOutput): ContractInterface;
+  from(txid: string, vout: number, prevout: TxOutput): ContractInterface;
   getTaprootTree(): HashTree;
 }
 
 export class Contract implements ContractInterface {
   name: string;
   address: string;
-  fundingOutpoint: Outpoint | undefined;
+  fundingUtxo: Utxo | undefined;
   // TODO add bytesize calculation
   bytesize: number = 0;
 
@@ -92,7 +92,6 @@ export class Contract implements ContractInterface {
           constructorArgs
         )
       );
-      console.log(asm);
 
       this.leaves.push({
         scriptHex: script.fromASM(asm.join(' ')).toString('hex'),
@@ -120,14 +119,14 @@ export class Contract implements ContractInterface {
     return toHashTree(this.leaves, true);
   }
 
-  attach(txid: string, vout: number, prevout: TxOutput): this {
+  from(txid: string, vout: number, prevout: TxOutput): this {
     // check we are using an actual funding outpoint for the script of the contract
     if (!prevout.script.equals(this.scriptPubKey))
       throw new Error(
         'given prevout script does not match contract scriptPubKey'
       );
 
-    this.fundingOutpoint = {
+    this.fundingUtxo = {
       txid,
       vout,
       prevout,
@@ -159,7 +158,7 @@ export class Contract implements ContractInterface {
         artifactFunction,
         functionArgs,
         selector,
-        this.fundingOutpoint,
+        this.fundingUtxo,
         {
           leaves: this.leaves,
           parity: this.parity,
